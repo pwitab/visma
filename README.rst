@@ -43,7 +43,7 @@ function
 
 .. code-block:: bash
 
-    visma authenticate --code <auth_code> --client <client_id> --secret <client_secret>
+    visma get_token --code <auth_code> --client <client_id> --secret <client_secret> > /path/to/auth.json
 
 
 This will return an access token and a renew token that will be used by the

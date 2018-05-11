@@ -7,7 +7,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'requests',
+    'requests', 'click',
 ]
 
 setup(
@@ -21,7 +21,11 @@ setup(
     packages=[
         'visma',
     ],
-
+    entry_points={
+        'console_scripts': [
+            'visma = visma.cli:cli',
+        ],
+    },
     include_package_data=True,
     install_requires=requirements,
 
