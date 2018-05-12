@@ -6,10 +6,6 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [
-    'requests', 'click',
-]
-
 setup(
     name='visma',
     version='0.0.1.dev1',
@@ -27,8 +23,6 @@ setup(
         ],
     },
     include_package_data=True,
-    install_requires=requirements,
-
     license="BSD-3",
     zip_safe=False,
     keywords=[],

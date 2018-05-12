@@ -23,16 +23,15 @@ def request_access(client, browser, production):
                         f'?client_id='
                         f'{client}&redirect_uri=https://identity.vismaonline'
                         f'.com/redirect_receiver&scope=ea:api%20offline_access'
-                        f'%20ea:sales&state=FromPythonCLI&response_type=code'
+                        f'%20ea:sales%20ea:accounting%20ea:purchase&state=FromPythonCLI&response_type=code'
                         f'&prompt=login'), new=1)
     else:
         __browser.open((f'https://identity-sandbox.test.vismaonline.com'
                         f'/connect/authorize'
-                        f'?client_id='
-                        f'{client}&redirect_uri=https://identity-sandbox.test'
-                        f'.vismaonline'
-                        f'.com/redirect_receiver&scope=ea:api%20offline_access'
-                        f'%20ea:sales&state=FromPythonCLI&response_type=code'
+                        f'?client_id={client}&'
+                        f'redirect_uri=https://identity-sandbox.test'
+                        f'.vismaonline.com/redirect_receiver&scope=ea:api%20offline_access'
+                        f'%20ea:sales%20ea:accounting%20ea:purchase&state=FromPythonCLI&response_type=code'
                         f'&prompt=login'), new=1)
 
 
