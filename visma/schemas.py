@@ -40,8 +40,9 @@ class CustomerSchema(VismaSchema):
 
 class CustomerInvoiceDraftSchema(VismaSchema):
 
+    id = fields.String(data_key='Id')
     customer_id = fields.String(data_key='CustomerId')
-    rot_reduced_invoicing_type = fields.String(
+    rot_reduced_invoicing_type = fields.Integer(
         data_key='RotReducedInvoicingType')
     customer_name = fields.String(data_key='InvoiceCustomerName')
     postal_code = fields.String(data_key='InvoicePostalCode')

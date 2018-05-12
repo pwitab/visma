@@ -2,11 +2,10 @@ import json
 import datetime
 import iso8601
 import requests
-import os
 
 from pprint import pprint
 
-from .schemas import Customer, CustomerSchema, CustomerInvoiceDraftSchema
+from .schemas import CustomerSchema, CustomerInvoiceDraftSchema
 
 
 class VismaAPIException(Exception):
@@ -32,7 +31,7 @@ class VismaAPI:
 
     def __init__(self, client_id, client_secret, token_path=None,
                  access_token=None, refresh_token=None, token_expires=None,
-                 is_initiated=False, test=False):
+                 test=False):
 
         self.client_id = client_id
         self.client_secret = client_secret
@@ -41,7 +40,6 @@ class VismaAPI:
         self.token_expires = None
         self.token_path = token_path
         self.test = test
-        self.is_initiated = is_initiated
 
         if token_path is not None:
             self._load_tokens()
@@ -51,24 +49,6 @@ class VismaAPI:
             self.access_token = access_token
             self.refresh_token = refresh_token
             self.token_expires = token_expires
-
-        if self.is_initiated is False:
-            self.initiate_api()
-
-
-
-    def initiate_api(self):
-        self.is_initiated = True
-        self._update_env_vars()
-
-    def _update_env_vars(self):
-
-        os.environ['VISMA_ACCESS_TOKEN'] = self.access_token
-        os.environ['VISMA_REFRESH_TOKEN'] = self.refresh_token
-        os.environ['VISMA_TOKEN_EXPIRES'] = self.token_expires.isoformat()
-        os.environ['VISMA_CLIENT_ID'] = self.client_id
-        os.environ['VISMA_CLIENT_SECRET'] = self.client_secret
-        os.environ['VISMA_IS_INITIATED'] = str(int(self.is_initiated))
 
     # TODO: Can I make a decorator to handle errors from the API?
 
@@ -161,8 +141,6 @@ class VismaAPI:
 
         with open(self.token_path, 'w') as token_file:
             json.dump(tokens, token_file)
-
-        self._update_env_vars()
 
     def get_accounts(self):
 

@@ -2,58 +2,15 @@ import os
 import iso8601
 
 
-# class VismaModelBase(type):
-#     """Metaclass for all VismaModels that will inject the api
-#
-#     Will read environment variables and instantiate a new VismaAPI object on all
-#     model classes.
-#
-#     TODO: If it where a Django app we would have access to the settings all
-#     across the application and we could use the same object and also maybe start
-#     building in caching in the API model. But not really sure how to make a
-#     simmilar thing when using in a script.
-#     """
-#
-#     def __new__(cls, *args, **kwargs):
-#         x = super().__new__(cls, *args, **kwargs)
-#         is_initiated = bool(os.environ.get('VISMA_IS_INITIATED', default=None))
-#         if is_initiated:
-#             settings = cls.get_api_settings()
-#             x.api = VismaAPI(**settings)
-#
-#         return x
-#
-#     @staticmethod
-#     def get_api_settings():
-#         access_token = os.environ.get('VISMA_ACCESS_TOKEN')
-#         refresh_token = os.environ.get('VISMA_REFRESH_TOKEN')
-#         token_expires = iso8601.parse_date(
-#             os.environ.get('VISMA_TOKEN_EXPIRES'))
-#         is_initiated = bool(os.environ.get('VISMA_IS_INITIATED'))
-#         client_id = os.environ.get('VISMA_CLIENT_ID')
-#         client_secret = os.environ.get('VISMA_CLIENT_SECRET')
-#
-#         settings = {'access_token': access_token,
-#                     'refresh_token': refresh_token,
-#                     'token_expires': token_expires,
-#                     'is_initiated': is_initiated,
-#                     'client_id': client_id,
-#                     'client_secret': client_secret}
-#         return settings
-
 class VismaModel:
 
-    def save(self):
-        pass
+    id = None
 
-    def serialize(self):
-        pass
+    def __repr__(self):
+        return '<%s: %s>' % (self.__class__.__name__, self)
 
-    @classmethod
-    def deserialize(cls, data):
-        pass
-
-# TODO: Can I use Meta Class to attach an API object to all models?
+    def __str__(self):
+        return '%s object (%s)' % (self.__class__.__name__, self.id)
 
 
 class Customer(VismaModel):
@@ -89,36 +46,32 @@ class TermsOfPayment:
 
 class CustomerInvoiceDraft(VismaModel):
 
-    def __init__(self, customer,
-                 customer_name=None,
-                 postal_code=None,
-                 city=None,
-                 ):
+    def __init__(self, customer_id, customer_name=None, postal_code=None,
+                 city=None, rot_reduced_invoicing_type=0, eu_third_party=False,
+                 country_code='SE', customer_is_private_person=None, id=None):
 
+        self.id = id
+        self.customer_id = customer_id
+        self.customer_name = customer_name
+        self.postal_code = postal_code
+        self.city = city
+        self.customer_is_private_person = customer_is_private_person
+        self.rot_reduced_invoicing_type = rot_reduced_invoicing_type
+        self.eu_third_party = eu_third_party
+        self.country_code = country_code
+
+    @classmethod
+    def with_customer(cls, customer, *args, **kwargs):
         assert isinstance(customer, Customer)
 
-        self.customer = customer
-        self.customer_id = self.customer.id
-        if customer_name is None:
-            self.customer_name = self.customer.name
-        else:
-            self.customer_name = customer_name
+        return cls(customer_id=customer.id, customer_name=customer.name,
+                   postal_code=customer.invoice_postal_code,
+                   city=customer.invoice_city,
+                   customer_is_private_person=customer.is_private_person,
+                   *args, **kwargs)
 
-        if postal_code is None:
-            self.postal_code = self.customer.invoice_postal_code
-        else:
-            self.postal_code = postal_code
 
-        if city is None:
-            self.city = self.customer.invoice_city
-        else:
-            self.city = city
 
-        self.customer_is_private_person = self.customer.is_private_person
-
-        self.rot_reduced_invoicing_type = 0  # Normal
-        self.eu_third_party = False
-        self.country_code = 'SE'
 
 
 
