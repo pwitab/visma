@@ -49,6 +49,43 @@ function
 This will return an access token and a renew token that will be used by the
 client to make authenticated requests to the Visma API.
 
+Using the library
+=================
+
+As of now we only implement a few features via simple methods on the API class
+
+.. code-block:: python
+
+    from visma.api import VismaAPI
+    from visma.models import CustomerInvoiceDraft
+
+    api = VismaAPI(token_path='path/to/auth.json', client_id='my_client_id', client_secret='my_client_secret', test=True)
+
+    company_settings = api.get_company_settings()
+
+    customer = api.get_customer(1)
+
+    invoice = CustomerInvoiceDraft.with_customer(customer)
+
+    api.new_customer_invoice_draft(invoice)
+
+
+But this is not the API we want eventually. It isn't that "pythonic" as we see it.
+What we would like is an API that is more like an ORM, for example the Django ORM.
+
+.. code-block:: python
+
+    customer = Customer.objects.get(id=1)
+
+    invoice = CustomerInvoiceDraft(customer=customer)
+    invoice.add_row(Row('article'))
+    invocie.save()
+
+But it is a bit harder to implement. If anyone has good ideas on how to structure it you are welcome to contact us.
+We have fiddled a bit with meta classes to inject the API in a simmilar way as Django manager. But the Django managers contain alot of magic.
+The visma API supports filtering and other operations via OData so wrapping them in a similar APi as the Django ORM would be very nice.
+
+
 API reference
 =============
 
