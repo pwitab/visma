@@ -1,8 +1,72 @@
 import os
 import iso8601
+from visma.utils import import_string, get_api_settings_from_env
+from visma.api import VismaAPI
+from pprint import pprint
 
 
-class VismaModel:
+class Manager:
+    def __init__(self):
+
+        self.model = None
+        self.name = None
+        self.endpoint = None
+        self.api = None
+        self.schema = None
+
+    def register_model(self, model, name):
+        self.name = self.name or name
+        self.model = model
+
+    def all(self):
+        data = self.api._get(self.endpoint).json()
+        r_data = data['Data']
+        _schema = self.schema()
+        return _schema.load(data=r_data, many=True)
+
+    def get(self, pk):
+
+        _endpoint = f'{self.endpoint}/{pk}'
+
+        data = self.api._get(_endpoint).json()
+        _schema = self.schema()
+        return _schema.load(data=data)
+
+
+
+
+
+class VismaModelMeta(type):
+    """Base metaclass for all VismaModels"""
+
+    def __new__(mcs, name, bases, attrs):
+
+        # Also ensure initialization is only performed for subclasses of Model
+        # (excluding Model class itself).
+        parents = [b for b in bases if isinstance(b, VismaModelMeta)]
+        if not parents:
+            return super().__new__(mcs, name, bases, attrs)
+
+
+        new_attrs = attrs
+        # TODO: add meta data
+
+        new_class = super().__new__(mcs, name, bases, new_attrs)
+
+        attr_meta = attrs.pop('Meta', None)
+        meta = attr_meta or getattr(new_class, 'Meta', None)
+
+        manager = Manager()
+        manager.register_model(new_class, 'objects')
+        manager.endpoint = getattr(meta, 'endpoint')
+        manager.schema = import_string(getattr(meta, 'schema'))
+        manager.api = VismaAPI.with_token_file(**get_api_settings_from_env())
+        new_class.objects = manager
+
+        return new_class
+        
+
+class VismaModel(metaclass=VismaModelMeta):
 
     id = None
 
@@ -28,8 +92,12 @@ class Customer(VismaModel):
         self.is_private_person = is_private_person
         self.is_active = is_active
 
+    class Meta:
+        endpoint = '/customers'
+        schema = 'visma.schemas.CustomerSchema'
 
-class TermsOfPayment:
+
+class TermsOfPayment(VismaModel):
 
     def __init__(self, name, available_for_purchase=None,
                  available_for_sales=None, id=None, name_english=None,
@@ -42,6 +110,11 @@ class TermsOfPayment:
         self.name_english = name_english
         self.type_id = type_id
         self.type_text = type_text
+
+    class Meta:
+        endpoint = '/termsofpayment'
+        schema = 'visma.schemas.TermsOfPaymentSchema'
+
 
 
 class CustomerInvoiceDraft(VismaModel):
@@ -59,6 +132,10 @@ class CustomerInvoiceDraft(VismaModel):
         self.rot_reduced_invoicing_type = rot_reduced_invoicing_type
         self.eu_third_party = eu_third_party
         self.country_code = country_code
+
+    class Meta:
+        endpoint = '/customerinvoicedrafts'
+        schema = 'visma.schemas.CustomerInvoiceDraftSchema'
 
     @classmethod
     def with_customer(cls, customer, *args, **kwargs):

@@ -29,32 +29,28 @@ class VismaAPI:
     API_URL = 'https://eaccountingapi.vismaonline.com/v2'
     API_URL_TEST = 'https://eaccountingapi-sandbox.test.vismaonline.com/v2'
 
-    def __init__(self, client_id, client_secret, token_path=None,
-                 access_token=None, refresh_token=None, token_expires=None,
+    def __init__(self, client_id, client_secret,
+                 access_token, refresh_token, token_expires, token_path=None,
                  test=False):
 
         self.client_id = client_id
         self.client_secret = client_secret
-        self.access_token = None
-        self.refresh_token = None
-        self.token_expires = None
+        self.access_token = access_token
+        self.refresh_token = refresh_token
+        self.token_expires = token_expires
         self.token_path = token_path
         self.test = test
 
-        if token_path is not None:
-            self._load_tokens()
-            if self.token_expired:
-                self._refresh_token()
-        else:
-            self.access_token = access_token
-            self.refresh_token = refresh_token
-            self.token_expires = token_expires
+        if self.token_expired:
+            self._refresh_token()
 
     # TODO: Can I make a decorator to handle errors from the API?
 
     def _get(self, endpoint, params=None, **kwargs):
 
         url = self._format_url(endpoint)
+
+        print(url)
         r = requests.get(url, params, headers=self.api_headers, **kwargs)
         return r
 
@@ -104,7 +100,7 @@ class VismaAPI:
 
         if response.status_code != 200:
             raise VismaAPIException(f'Couldn\'t refresh token: '
-                                    f'{response.content}')
+                                    f'{response.content}, Client_id={self.client_id}')
         else:
             auth_info = response.json()
 
@@ -141,6 +137,26 @@ class VismaAPI:
 
         with open(self.token_path, 'w') as token_file:
             json.dump(tokens, token_file)
+
+    @classmethod
+    def with_token_file(cls, token_path, client_id, client_secret, test):
+        """
+        Load tokens from json file
+        """
+        access_token = None
+        refresh_token = None
+        token_expires = None
+        with open(token_path) as token_file:
+            tokens = json.load(token_file)
+            access_token = tokens['access_token']
+            refresh_token = tokens['refresh_token']
+            token_expires = iso8601.parse_date(tokens['expires'])
+
+        return cls(client_id, client_secret,
+                   access_token=access_token,
+                   refresh_token=refresh_token,
+                   token_expires=token_expires,
+                   test=test)
 
     def get_accounts(self):
 
@@ -187,4 +203,3 @@ class VismaAPI:
         return customer
 
     # TODO: Make a general way of passing filtering options.
-

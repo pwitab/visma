@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields, post_load
 
-from .models import TermsOfPayment, Customer, CustomerInvoiceDraft
+from visma.utils import import_string
 
 
 class VismaSchema(Schema):
@@ -19,7 +19,8 @@ class TermsOfPaymentSchema(VismaSchema):
 
     @post_load
     def make_terms_of_payment(self, data):
-        return TermsOfPayment(**data)
+        klass = import_string('visma.models.TermsOfPayment')
+        return klass(**data)
 
 
 class CustomerSchema(VismaSchema):
@@ -35,7 +36,8 @@ class CustomerSchema(VismaSchema):
 
     @post_load
     def make_customer(self, data):
-        return Customer(**data)
+        klass = import_string('visma.models.Customer')
+        return klass(**data)
 
 
 class CustomerInvoiceDraftSchema(VismaSchema):
@@ -54,4 +56,5 @@ class CustomerInvoiceDraftSchema(VismaSchema):
 
     @post_load
     def make_customer_invoice_draft(self, data):
-        return CustomerInvoiceDraft(**data)
+        klass = import_string('visma.models.CustomerInvoiceDraft')
+        return klass(**data)
