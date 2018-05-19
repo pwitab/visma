@@ -61,16 +61,25 @@ to database access. We want to be able interact with all objects as normal pytho
 
     customers = Customer.objects.all()
 
-    invoice = CustomerInvoiceDraft.objects.get('e629baaf-642b-4079-9180-1b8463d24dc2')
+    invoice = CustomerInvoiceDraft.objects.get('e629baaf-642b-4079-9180-1b8463d24dc2'
+    invoice.your_reference = 'Mr finance guy'
+    invoice.save()
+
+    invoice2 = CustomerInvoiceDraft.objects.get('ff9839do-642b-4079-9180-1b8463d24dc2')
+    invoice2.delete()
+
+    # or
+
+    CustomerInvoiceDraft.objects.delete('ff9839do-642b-4079-9180-1b8463d24dc2')
 
 Supported:
     * Getting all objects
     * Getting single object
+    * Saving new objects and updating existing via .save()
+    * Deleting objects
 
 Todo:
     * filtering via Odata parameters, should be simmilar to Django QuerySets
-    * saving and updating via .save()
-    * creating new objects via .create()
     * manage pagination
 
 

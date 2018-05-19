@@ -59,6 +59,16 @@ class VismaAPI:
         r = requests.post(url, data, *args, headers=self.api_headers, **kwargs)
         return r
 
+    def _put(self,endpoint, data, **kwargs):
+        url = self._format_url(endpoint)
+        r = requests.put(url, data, headers=self.api_headers, **kwargs)
+        return r
+
+    def _delete(self, endpoint, **kwargs):
+        url = self._format_url(endpoint)
+        r = requests.delete(url, headers=self.api_headers, **kwargs)
+        return r
+
     def _format_url(self, endpoint):
         if self.test:
             url = self.API_URL_TEST + endpoint
@@ -157,49 +167,3 @@ class VismaAPI:
                    refresh_token=refresh_token,
                    token_expires=token_expires,
                    test=test)
-
-    def get_accounts(self):
-
-        accounts = self._get('/accounts').json()
-        return accounts
-
-    def get_customer_invoices(self):
-        return self._get('/customerinvoices').json()
-
-    def get_company_settings(self):
-        return self._get('/companysettings').json()
-
-    def new_customer_invoice_draft(self, invoice_draft):
-        schema = CustomerInvoiceDraftSchema()
-
-        data = json.dumps(schema.dump(invoice_draft))
-
-        pprint(data)
-
-        resp = self._post('/customerinvoicedrafts', data=data)
-
-        return resp.json()
-
-    def get_customer_invoice_drafts(self):
-        r = self._get('/customerinvoicedrafts')
-
-        r_data = r.json()
-        pprint(r_data)
-        schema = CustomerInvoiceDraftSchema()
-        invoices = schema.load(data=r_data['Data'], many=True)
-
-        return invoices
-
-    def get_customer(self, customer_number):
-        response = self._get(
-            f"/customers?$filter= CustomerNumber eq '{customer_number}'")
-
-        response_data = response.json()
-        pprint(response_data)
-
-        customer_schema = CustomerSchema()
-        customer = customer_schema.load(data=response_data['Data'][0])
-
-        return customer
-
-    # TODO: Make a general way of passing filtering options.

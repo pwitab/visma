@@ -3,6 +3,7 @@ import iso8601
 from visma.utils import import_string, get_api_settings_from_env
 from visma.api import VismaAPI
 from pprint import pprint
+import json
 
 
 class Manager:
@@ -31,6 +32,42 @@ class Manager:
         data = self.api._get(_endpoint).json()
         _schema = self.schema()
         return _schema.load(data=data)
+
+    def _create(self, obj):
+        _schema = self.schema()
+        data = _schema.dump(obj)
+        result = self.api._post(self.endpoint, json.dumps(data))
+
+        pprint(result.json())
+        return result
+
+    def _update(self, obj):
+
+        pk = obj.id
+        _endpoint = f'{self.endpoint}/{pk}'
+
+        _schema = self.schema()
+        data = _schema.dump(obj)
+        result = self.api._put(_endpoint, json.dumps(data))
+
+        pprint(result.json())
+        return result
+
+    def delete(self, pk):
+        _endpoint = f'{self.endpoint}/{pk}'
+
+        result = self.api._delete(_endpoint)
+
+        return result
+
+    def _delete(self, obj):
+        pk = obj.id
+        _endpoint = f'{self.endpoint}/{pk}'
+
+        result = self.api._delete(_endpoint)
+
+        return result
+
 
 
 
@@ -69,6 +106,23 @@ class VismaModelMeta(type):
 class VismaModel(metaclass=VismaModelMeta):
 
     id = None
+
+    def save(self):
+
+        if self.id is None:
+            # create a new model
+            print('Saving data')
+            self.objects._create(self)
+
+
+        else:
+            # update model
+            print('Updating object')
+            self.objects._update(self)
+
+    def delete(self):
+        print('Deleting object ')
+        self.objects._delete(self)
 
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self)
@@ -121,7 +175,7 @@ class CustomerInvoiceDraft(VismaModel):
 
     def __init__(self, customer_id, customer_name=None, postal_code=None,
                  city=None, rot_reduced_invoicing_type=0, eu_third_party=False,
-                 country_code='SE', customer_is_private_person=None, id=None):
+                 country_code='SE', customer_is_private_person=None, your_reference=None, id=None):
 
         self.id = id
         self.customer_id = customer_id
@@ -132,6 +186,7 @@ class CustomerInvoiceDraft(VismaModel):
         self.rot_reduced_invoicing_type = rot_reduced_invoicing_type
         self.eu_third_party = eu_third_party
         self.country_code = country_code
+        self.your_reference = your_reference
 
     class Meta:
         endpoint = '/customerinvoicedrafts'
