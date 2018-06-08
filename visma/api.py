@@ -5,7 +5,7 @@ import requests
 
 from pprint import pprint
 
-from .schemas import CustomerSchema, CustomerInvoiceDraftSchema
+#from .schemas import CustomerSchema, CustomerInvoiceDraftSchema
 
 
 class VismaAPIException(Exception):
@@ -46,7 +46,7 @@ class VismaAPI:
 
     # TODO: Can I make a decorator to handle errors from the API?
 
-    def _get(self, endpoint, params=None, **kwargs):
+    def get(self, endpoint, params=None, **kwargs):
 
         url = self._format_url(endpoint)
 
@@ -54,17 +54,17 @@ class VismaAPI:
         r = requests.get(url, params, headers=self.api_headers, **kwargs)
         return r
 
-    def _post(self, endpoint, data, *args, **kwargs):
+    def post(self, endpoint, data, *args, **kwargs):
         url = self._format_url(endpoint)
         r = requests.post(url, data, *args, headers=self.api_headers, **kwargs)
         return r
 
-    def _put(self,endpoint, data, **kwargs):
+    def put(self, endpoint, data, **kwargs):
         url = self._format_url(endpoint)
         r = requests.put(url, data, headers=self.api_headers, **kwargs)
         return r
 
-    def _delete(self, endpoint, **kwargs):
+    def delete(self, endpoint, **kwargs):
         url = self._format_url(endpoint)
         r = requests.delete(url, headers=self.api_headers, **kwargs)
         return r
@@ -107,6 +107,13 @@ class VismaAPI:
         response = requests.post(url, data,
                                  auth=(self.client_id, self.client_secret),
                                  headers=headers)
+
+        print(data)
+        print(headers)
+        sending = response.request
+        print(sending.headers)
+        print(sending.body)
+        # TODO: What is id_token used for?
 
         if response.status_code != 200:
             raise VismaAPIException(f'Couldn\'t refresh token: '
@@ -166,4 +173,5 @@ class VismaAPI:
                    access_token=access_token,
                    refresh_token=refresh_token,
                    token_expires=token_expires,
+                   token_path=token_path,
                    test=test)

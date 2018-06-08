@@ -23,13 +23,3 @@ def test_model_endpoint():
 
     assert obj.endpoint == '/termsofpayment'
 
-def test_model_schema():
-
-    from visma.schemas import TermsOfPaymentSchema
-    terms_o_p = TermsOfPayment(name='test_terms_of_payment')
-
-    obj = getattr(terms_o_p, 'objects', None)
-
-    assert issubclass(obj.schema, TermsOfPaymentSchema)
-
-
