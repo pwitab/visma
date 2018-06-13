@@ -3,7 +3,7 @@ from visma.models import TermsOfPayment, CustomerInvoiceDraft
 
 def test_customer_model_has_manager():
 
-    from visma.models import Manager
+    from visma.manager import Manager
 
     terms_o_p = TermsOfPayment(name='test_terms_of_payment')
 

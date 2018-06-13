@@ -4,10 +4,6 @@ import iso8601
 import requests
 from os import environ
 
-from pprint import pprint
-
-#from .schemas import CustomerSchema, CustomerInvoiceDraftSchema
-
 
 class VismaAPIException(Exception):
     """An error occurred in the Visma API """
@@ -48,9 +44,7 @@ class VismaAPI:
     # TODO: Can I make a decorator to handle errors from the API?
 
     def get(self, endpoint, params=None, **kwargs):
-
         url = self._format_url(endpoint)
-
         print(url)
         r = requests.get(url, params, headers=self.api_headers, **kwargs)
         return r
