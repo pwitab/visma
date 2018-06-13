@@ -61,7 +61,7 @@ to database access. We want to be able interact with all objects as normal pytho
 
     customers = Customer.objects.all()
 
-    invoice = CustomerInvoiceDraft.objects.get('e629baaf-642b-4079-9180-1b8463d24dc2'
+    invoice = CustomerInvoiceDraft.objects.get('e629baaf-642b-4079-9180-1b8463d24dc2')
     invoice.your_reference = 'Mr finance guy'
     invoice.save()
 
@@ -72,15 +72,41 @@ to database access. We want to be able interact with all objects as normal pytho
 
     CustomerInvoiceDraft.objects.delete('ff9839do-642b-4079-9180-1b8463d24dc2')
 
-Supported:
+
+Supported functions:
     * Getting all objects
     * Getting single object
     * Saving new objects and updating existing via .save()
     * Deleting objects
 
 Todo:
-    * filtering via Odata parameters, should be simmilar to Django QuerySets
+    * filtering via Odata parameters, should be similar to Django QuerySets
     * manage pagination
+
+
+Available Objects
+-----------------
+Some objects we use and have tried out. But other code is made from generating
+marshmallow schemas with `swagger-marshmallow-codegen
+<https://github.com/podhmo/swagger-marshmallow-codegen/>`_.
+We have not tried all of it since we wont have the use cases.
+We would be happy to receive some comments if something is not working.
+
+Tested
+^^^^^
+* Customer
+* TermsOfPayment
+* CustomerInvoiceDraft
+
+Implemented
+^^^^^^^^^^^
+
+
+Not implemented
+^^^^^^^^^^^^^^^
+
+* most
+
 
 
 API reference
