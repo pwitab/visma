@@ -2,6 +2,7 @@ import json
 import datetime
 import iso8601
 import requests
+from os import environ
 
 from pprint import pprint
 
@@ -156,22 +157,39 @@ class VismaAPI:
             json.dump(tokens, token_file)
 
     @classmethod
-    def with_token_file(cls, token_path, client_id, client_secret, test):
+    def load(cls):
+        env = cls.get_api_settings_from_env()
         """
-        Load tokens from json file
-        """
+                Load tokens from json file
+                """
         access_token = None
         refresh_token = None
         token_expires = None
-        with open(token_path) as token_file:
+        with open(env['token_path']) as token_file:
             tokens = json.load(token_file)
             access_token = tokens['access_token']
             refresh_token = tokens['refresh_token']
             token_expires = iso8601.parse_date(tokens['expires'])
 
-        return cls(client_id, client_secret,
+        return cls(env['client_id'], env['client_secret'],
                    access_token=access_token,
                    refresh_token=refresh_token,
                    token_expires=token_expires,
-                   token_path=token_path,
-                   test=test)
+                   token_path=env['token_path'],
+                   test=env['test'])
+
+
+    @staticmethod
+    def get_api_settings_from_env():
+        settings = {'token_path': environ.get('VISMA_API_TOKEN_PATH'),
+                    'client_id': environ.get('VISMA_API_CLIENT_ID'),
+                    'client_secret': environ.get('VISMA_API_CLIENT_SECRET')}
+
+        if environ.get('VISMA_API_ENV') == 'test':
+            settings['test'] = True
+
+        if environ.get('VISMA_API_ENV') == 'production':
+            settings['test'] = False
+
+        return settings
+

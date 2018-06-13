@@ -1,7 +1,5 @@
 import os
-import iso8601
-from visma.utils import import_string, get_api_settings_from_env
-from visma.api import VismaAPI
+from visma.utils import import_string
 from pprint import pprint
 import json
 from marshmallow.base import FieldABC
@@ -140,8 +138,10 @@ class VismaModelMeta(type):
             manager.register_model(new_class, 'objects')
             manager.endpoint = endpoint
             manager.schema = schema_klass
-            manager.api = VismaAPI.with_token_file(
-                **get_api_settings_from_env())
+            api_klass_path = os.environ.get('VISMA_API_CLASS',
+                                            default='visma.api.VismaAPI')
+            api_klass = import_string(api_klass_path)
+            manager.api = api_klass.load()
             new_class.objects = manager
 
         except AttributeError:

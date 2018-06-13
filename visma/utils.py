@@ -24,17 +24,3 @@ def import_string(dotted_path):
              module_path, class_name)
         ) from err
 
-
-def get_api_settings_from_env():
-    settings = {'token_path': environ.get('VISMA_API_TOKEN_PATH'),
-                'client_id': environ.get('VISMA_API_CLIENT_ID'),
-                'client_secret': environ.get('VISMA_API_CLIENT_SECRET')}
-
-    if environ.get('VISMA_API_ENV') == 'test':
-        settings['test'] = True
-
-    if environ.get('VISMA_API_ENV') == 'production':
-        settings['test'] = False
-
-
-    return settings
