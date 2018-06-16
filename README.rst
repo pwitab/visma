@@ -2,7 +2,7 @@
 Visma
 =====
 
-A Python Client library for integration to Visma e-Accounting, Visma e-Ekonomi
+A Python Client/ORM library for integration to Visma e-Accounting, Visma e-Ekonomi
 
 Installation
 ============
