@@ -3,16 +3,18 @@
 Installation
 ============
 
-
 .. code-block:: python
 
     pip install visma
 
 
+Access to Visma API
+===================
+
 After installation you will need to set up access to the Visma E-Accounting API
 
 As of now it is not possible to get access by yourself so you will need to contact
-Visma at eaccountingApi@visma.com. When you contact them request redirect URI to
+Visma at eaccountingapi@visma.com. When you contact them request redirect URI to
 /redirect_receiver
 
 They will first set up an account in their sandbox environment for you and after
@@ -45,3 +47,18 @@ function
 
 This will return an access token and a renew token that will be used by the
 client to make authenticated requests to the Visma API.
+
+Environment Variables
+=====================
+
+To set up the API classes you need to supply give your Visma Client ID,
+Visma Client Secret and the path to the tokens you saved before.
+
+These settings are now supplied via the environment variables:
+
+* VISMA_API_CLIENT_ID
+* VISMA_API_CLIENT_SECRET
+* VISMA_API_TOKEN_PATH
+
+If you are using the test environment supplied from Visma API Team you need to
+add the environment variable VISMA_API_ENV=test so that the paths are set up properly.
