@@ -2487,11 +2487,12 @@ class Supplier(VismaModel):
                              validate=[Length(min=0, max=50)],
                              data_key='Address2')
     automatic_payment_service = fields.Boolean(
-        description=('Purpose: SE only. Indicates if the supplier is paid by an '
-                     'automatic payment service. Supplier invoices to such '
-                     'suppliers will not be sent to the bank via the bank '
-                     'integration\r\n'
-                     'Default value: false'),
+        description=(
+            'Purpose: SE only. Indicates if the supplier is paid by an '
+            'automatic payment service. Supplier invoices to such '
+            'suppliers will not be sent to the bank via the bank '
+            'integration\r\n'
+            'Default value: false'),
         data_key='AutomaticPaymentService')
     bank_account_number = fields.String(
         description=('Max length: 50 characters. '
@@ -2518,8 +2519,8 @@ class Supplier(VismaModel):
         data_key='BankBic')
     bank_code = fields.String(
         description=('Purpose: Used on foreign payments to identify a '
-                    'bankaccount together with BBAN (SupplierBankBban)\r\n'
-                    'Format: 2 letters followed by at least 3 characters'),
+                     'bankaccount together with BBAN (SupplierBankBban)\r\n'
+                     'Format: 2 letters followed by at least 3 characters'),
         validate=[Length(min=0, max=50),
                   # Regexp(regex=re.compile('^([a-zA-Z]{2})[a-zA-Z0-9]{3,}$'))
                   ],
@@ -2602,8 +2603,8 @@ class Supplier(VismaModel):
                               data_key='Telephone')
     terms_of_payment_id = fields.UUID(
         required=True,
-                                      description='Source: Get from /v1/termsofpayment',
-                                      data_key='TermsOfPaymentId')
+        description='Source: Get from /v1/termsofpayment',
+        data_key='TermsOfPaymentId')
     www_address = fields.String(description='Max length: 255 characters',
                                 validate=[Length(min=0, max=255)],
                                 data_key='WwwAddress')
@@ -2695,7 +2696,7 @@ class VatReport(VismaModel):
         data_key='SentForApprovalByUserId')
     voucher_id = fields.UUID(
         description=('Purpose: '
-                     'Use for GET /v2/vouchers/{fiscalyearId}/{voucherId})',
+                     'Use for GET /v2/vouchers/{fiscalyearId}/{voucherId}'),
         data_key='VoucherId')
     total_amount = fields.Number(
         description='Predicted vat amount to pay or be refunded',
@@ -2824,12 +2825,12 @@ class VoucherRow(VismaModel):
                                     data_key='AccountNumber')
     account_description = fields.String(description='Read-only',
                                         data_key='AccountDescription')
-    debit_amount = fields.Number \
-        (description='Format: Max 2 decimals',
-         validate=[Range(min=0, max=1000000000),
-                   # Regexp(regex=re.compile('[-]?\\d+(.\\d{1,2})?'))
-                   ],
-         data_key='DebitAmount')
+    debit_amount = fields.Number(
+        description='Format: Max 2 decimals',
+        validate=[Range(min=0, max=1000000000),
+                  # Regexp(regex=re.compile('[-]?\\d+(.\\d{1,2})?'))
+                  ],
+        data_key='DebitAmount')
     credit_amount = fields.Number(
         description='Format: Max 2 decimals',
         validate=[Range(min=0, max=1000000000),

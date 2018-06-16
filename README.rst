@@ -98,15 +98,9 @@ Tested
 * TermsOfPayment
 * CustomerInvoiceDraft
 
-Implemented
-^^^^^^^^^^^
-
-
-Not implemented
-^^^^^^^^^^^^^^^
-
-* most
-
+Documentation
+=============
+Full documentation can be found at https://visma.readthedocs.io/ .
 
 
 API reference
