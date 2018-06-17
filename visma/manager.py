@@ -44,7 +44,9 @@ class Manager:
     def update(self, obj):
         pk = obj.id
         _endpoint = f'{self.endpoint}/{pk}'
+        pprint(f'PUT {_endpoint}')
         data = self.schema.dump(obj)
+        pprint(data)
         result = self.api.put(_endpoint, json.dumps(data))
         pprint(result.json())
         return result

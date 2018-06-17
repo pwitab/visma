@@ -8,9 +8,18 @@ from marshmallow import fields
 
 
 class Customer(VismaModel):
+    """
+    Models the customer object in Visma e-Accounting.
+    Requires any of the following scopes:
+        ea:sales,
+        ea.local:mobile_user
+
+    """
+
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      data_key='Id',
-                     load_only=True)
+                     load_only=True,
+                     )
     customer_number = fields.String(
         description=('Max length: 20 characters. '
                      'Purpose: Unique identifier. '
@@ -163,7 +172,8 @@ class Customer(VismaModel):
         data_key='WwwAddress')
     last_invoice_date = fields.DateTime(
         description='Read-only. Purpose: Returns the last invoice date',
-        data_key='LastInvoiceDate')
+        data_key='LastInvoiceDate',
+        load_only=True)
     is_private_person = fields.Boolean(
         required=True,
         data_key='IsPrivatePerson',
@@ -351,10 +361,9 @@ class CustomerInvoiceDraft(VismaModel):
                                            allow_none=True)
     rows = fields.List(fields.Nested('CustomerInvoiceDraftRowSchema'),
                        data_key='Rows')
-    persons = None
-    # persons = fields.List(
-    #    fields.Nested('SalesDocumentRotRutReductionPersonSchema'),
-    #    data_key='Persons')
+    persons = fields.List(
+        fields.Nested('SalesDocumentRotRutReductionPersonSchema'),
+        data_key='Persons')
     your_reference = fields.String(
         description='Max length: 100 characters',
         validate=[
