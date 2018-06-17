@@ -25,7 +25,8 @@ class Customer(VismaModel):
                      'Purpose: Unique identifier. '
                      'If not provided, eAccounting will provide one'),
         validate=[Length(min=0, max=16, )],
-        data_key='CustomerNumber')
+        data_key='CustomerNumber',
+        allow_none=True)
     corporate_identity_number = fields.String(
         description='Max length: 20 characters',
         validate=[Length(min=0, max=20, )],
