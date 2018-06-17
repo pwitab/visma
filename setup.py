@@ -9,7 +9,7 @@ with open('HISTORY.rst') as history_file:
 setup(
     name='visma',
     version='0.0.1',
-    description="A Python Client library for integration to Visma e-Accounting, Visma e-Ekonomi",
+    description="A Python Client/ORM library for integration to Visma e-Accounting, Visma e-Ekonomi",
     long_description=readme + '\n\n' + history,
     author="Henrik Palmlund Wahlgren @ Palmlund Wahlgren Innovative Technology AB",
     author_email='henrik@pwit.se',
