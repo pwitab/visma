@@ -23,3 +23,6 @@ def test_model_endpoint():
 
     assert obj.endpoint == '/termsofpayment'
 
+
+
+# TODO: test allowed methods. But how to do it without API access? Maybe need to mock the api?
