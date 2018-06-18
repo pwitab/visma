@@ -47,21 +47,33 @@ class VismaAPI:
         url = self._format_url(endpoint)
         print(url)
         r = requests.get(url, params, headers=self.api_headers, **kwargs)
+        if not r.ok:
+            raise VismaAPIException(
+                f'GET :: HTTP:{r.status_code}, {r.content}')
         return r
 
     def post(self, endpoint, data, *args, **kwargs):
         url = self._format_url(endpoint)
         r = requests.post(url, data, *args, headers=self.api_headers, **kwargs)
+        if not r.ok:
+            raise VismaAPIException(
+                f'POST :: HTTP:{r.status_code}, {r.content}')
         return r
 
     def put(self, endpoint, data, **kwargs):
         url = self._format_url(endpoint)
         r = requests.put(url, data, headers=self.api_headers, **kwargs)
+        if not r.ok:
+            raise VismaAPIException(
+                f'PUT :: HTTP:{r.status_code}, {r.content}')
         return r
 
     def delete(self, endpoint, **kwargs):
         url = self._format_url(endpoint)
         r = requests.delete(url, headers=self.api_headers, **kwargs)
+        if not r.ok:
+            raise VismaAPIException(
+                f'DELETE :: HTTP:{r.status_code}, {r.content}')
         return r
 
     def _format_url(self, endpoint):

@@ -8,40 +8,56 @@ from marshmallow import fields
 
 
 class Customer(VismaModel):
+    """
+    Models the customer object in Visma e-Accounting.
+    Requires any of the following scopes:
+        ea:sales,
+        ea.local:mobile_user
+
+    """
+
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      data_key='Id',
-                     load_only=True)
+                     load_only=True,
+                     )
     customer_number = fields.String(
         description=('Max length: 20 characters. '
                      'Purpose: Unique identifier. '
                      'If not provided, eAccounting will provide one'),
         validate=[Length(min=0, max=16, )],
-        data_key='CustomerNumber')
+        data_key='CustomerNumber',
+        allow_none=True)
     corporate_identity_number = fields.String(
         description='Max length: 20 characters',
         validate=[Length(min=0, max=20, )],
-        data_key='CorporateIdentityNumber')
+        data_key='CorporateIdentityNumber',
+        allow_none=True)
     contact_person_email = fields.String(
         description='Max length: 255 characters',
         validate=[Length(min=0, max=255, )],
-        data_key='ContactPersonEmail')
+        data_key='ContactPersonEmail',
+        allow_none=True)
     contact_person_mobile = fields.String(
         description='Max length: 50 characters',
         validate=[Length(min=0, max=50, )],
-        data_key='ContactPersonMobile')
+        data_key='ContactPersonMobile',
+        allow_none=True)
     contact_person_name = fields.String(
         description='Max length: 100 characters',
         validate=[Length(min=0, max=100, )],
-        data_key='ContactPersonName')
+        data_key='ContactPersonName',
+        allow_none=True)
     contact_person_phone = fields.String(
         description='Max length: 50 characters',
         validate=[Length(min=0, max=50, )],
-        data_key='ContactPersonPhone')
+        data_key='ContactPersonPhone',
+        allow_none=True)
     currency_code = fields.String(
         description=('Max length: 3 characters. '
                      'Default value: Currency of the user company'),
         validate=[Length(min=0, max=3, )],
-        data_key='CurrencyCode')
+        data_key='CurrencyCode',
+        allow_none=True)
     gln = fields.String(
         description='NOTE: Obsolete. Please use EdiGlnNumber instead',
         validate=[Length(min=0, max=255, )],
@@ -50,17 +66,20 @@ class Customer(VismaModel):
     email_address = fields.String(
         description='Max length: 255 characters',
         validate=[Length(min=0, max=255, )],
-        data_key='EmailAddress')
+        data_key='EmailAddress',
+        allow_none=True)
     invoice_address1 = fields.String(
         description='Max length: 50 characters',
         validate=[
             Length(min=0, max=50, )],
-        data_key='InvoiceAddress1')
+        data_key='InvoiceAddress1',
+        allow_none=True)
     invoice_address2 = fields.String(
         description='Max length: 50 characters',
         validate=[
             Length(min=0, max=50, )],
-        data_key='InvoiceAddress2')
+        data_key='InvoiceAddress2',
+        allow_none=True)
     invoice_city = fields.String(
         required=True,
         description='Max length: 50 characters',
@@ -70,13 +89,15 @@ class Customer(VismaModel):
         description='Max length: 2 characters',
         validate=[
             Length(min=0, max=2, )],
-        data_key='InvoiceCountryCode')
+        data_key='InvoiceCountryCode',
+        allow_none=True)
     invoice_postal_code = fields.String(
         required=True,
         description='Max length: 10 characters',
         validate=[
             Length(min=0, max=10, )],
-        data_key='InvoicePostalCode')
+        data_key='InvoicePostalCode',
+        allow_none=True)
     delivery_customer_name = fields.String(
         description='Max length: 100 characters',
         validate=[Length(min=0, max=100, )],
@@ -130,7 +151,8 @@ class Customer(VismaModel):
                          data_key='Name')
     note = fields.String(description='Max length: 4000 characters',
                          validate=[Length(min=0, max=4000, )],
-                         data_key='Note')
+                         data_key='Note',
+        allow_none=True)
     reverse_charge_on_construction_services = fields.Boolean(
         description=('Default: false. '
                      'Purpose: If true, VatNumber must be set aswell'),
@@ -142,28 +164,35 @@ class Customer(VismaModel):
     mobile_phone = fields.String(
         description='Max length: 50 characters',
         validate=[Length(min=0, max=50, )],
-        data_key='MobilePhone')
+        data_key='MobilePhone',
+        allow_none=True)
     telephone = fields.String(
         description='Max length: 50 characters',
         validate=[Length(min=0, max=50, )],
-        data_key='Telephone')
+        data_key='Telephone',
+        allow_none=True)
     terms_of_payment_id = fields.UUID(
         required=True,
         description='Source: Get from /v2/termsofpayment',
         data_key='TermsOfPaymentId')
     terms_of_payment = fields.Nested('TermsOfPaymentSchema',
-                                     data_key='TermsOfPayment')
+                                     data_key='TermsOfPayment',
+        allow_none=True)
     vat_number = fields.String(
         description=('Max length: 20 characters. Format: 2 character country '
                      'code followed by 8-12 numbers.'),
-        validate=[Length(min=0, max=20, )], data_key='VatNumber')
+        validate=[Length(min=0, max=20, )], data_key='VatNumber',
+        allow_none=True)
     www_address = fields.String(
         description='Max length: 255 characters',
         validate=[Length(min=0, max=255, )],
-        data_key='WwwAddress')
+        data_key='WwwAddress',
+        allow_none=True)
     last_invoice_date = fields.DateTime(
         description='Read-only. Purpose: Returns the last invoice date',
-        data_key='LastInvoiceDate')
+        data_key='LastInvoiceDate',
+        load_only=True,
+        allow_none=True)
     is_private_person = fields.Boolean(
         required=True,
         data_key='IsPrivatePerson',
@@ -173,7 +202,8 @@ class Customer(VismaModel):
         validate=[Range(min=0, max=1, ),
                   # Regexp(regex=re.compile('[-]?\\d+(.\\d{1,4})?'))
                   ],
-        data_key='DiscountPercentage')
+        data_key='DiscountPercentage',
+        default=0)
     changed_utc = fields.DateTime(
         description=('Read-only. Purpose: Returns the last date and time from '
                      'when a change was made on the customer'),
@@ -185,28 +215,37 @@ class Customer(VismaModel):
         default=True)
     force_bookkeep_vat = fields.Boolean(
         data_key='ForceBookkeepVat',
-        default=True)
-    edi_gln_number = fields.String(data_key='EdiGlnNumber')
+        default=True,
+        allow_none=True)
+    edi_gln_number = fields.String(data_key='EdiGlnNumber',
+        allow_none=True)
     sales_document_language = fields.String(
         description='Max length: 2 characters',
         validate=[Length(min=0, max=2, )],
-        data_key='SalesDocumentLanguage')
-    electronic_address = fields.String(data_key='ElectronicAddress')
-    electronic_reference = fields.String(data_key='ElectronicReference')
-    edi_service_deliverer_id = fields.String(data_key='EdiServiceDelivererId')
+        data_key='SalesDocumentLanguage',
+        allow_none=True)
+    electronic_address = fields.String(data_key='ElectronicAddress',
+        allow_none=True)
+    electronic_reference = fields.String(data_key='ElectronicReference',
+        allow_none=True)
+    edi_service_deliverer_id = fields.String(data_key='EdiServiceDelivererId',
+        allow_none=True)
     auto_invoice_activation_email_sent_date = fields.DateTime(
         data_key='AutoInvoiceActivationEmailSentDate',
         allow_none=True)
     auto_invoice_registration_request_sent_date = fields.DateTime(
         data_key='AutoInvoiceRegistrationRequestSentDate',
         allow_none=True)
-    email_addresses = fields.List(fields.String(), data_key='EmailAddresses')
+    email_addresses = fields.List(fields.String(), data_key='EmailAddresses',
+        allow_none=True)
 
     # customer_labels = fields.List(fields.Nested('CustomerLabelSchema'),
     #                              data_key='CustomerLabels')
 
     class Meta:
         endpoint = '/customers'
+        allowed_methods = ['list', 'get', 'create', 'update', 'delete']
+
 
 
 class TermsOfPayment(VismaModel):
@@ -226,7 +265,11 @@ class TermsOfPayment(VismaModel):
     available_for_purchase = fields.Boolean(data_key='AvailableForPurchase')
 
     class Meta:
-        endpoint = '/termsofpayment'
+        """
+        TermsOfPayment only supports GET all or GET by id.
+        """
+        endpoint = '/termsofpayments'
+        allowed_methods = ['list', 'get']
 
 
 class CustomerInvoiceDraftRow(VismaModel):
@@ -350,11 +393,12 @@ class CustomerInvoiceDraft(VismaModel):
     house_work_other_costs = fields.Number(data_key='HouseWorkOtherCosts',
                                            allow_none=True)
     rows = fields.List(fields.Nested('CustomerInvoiceDraftRowSchema'),
-                       data_key='Rows')
-    persons = None
-    # persons = fields.List(
-    #    fields.Nested('SalesDocumentRotRutReductionPersonSchema'),
-    #    data_key='Persons')
+                       data_key='Rows',
+                       default=list())
+    persons = fields.List(
+        fields.Nested('SalesDocumentRotRutReductionPersonSchema'),
+        data_key='Persons',
+        default=list())
     your_reference = fields.String(
         description='Max length: 100 characters',
         validate=[
@@ -368,10 +412,10 @@ class CustomerInvoiceDraft(VismaModel):
         allow_none=True)
     invoice_customer_name = fields.String(
         required=True,
-        allow_none=True,
         description='Max length: 50 characters',
         validate=[Length(min=0, max=50)],
-        data_key='InvoiceCustomerName')
+        data_key='InvoiceCustomerName',
+        default='')
     invoice_address1 = fields.String(
         description='Max length: 50 characters',
         validate=[
@@ -526,6 +570,8 @@ class CustomerInvoiceDraft(VismaModel):
         # Experimental Endpoint! This might be subject to changes.
         # Converts a CustomerInvoiceDraft to a CustomerInvoice.
         endpoint = '/customerinvoicedrafts'
+        allowed_methods = ['list', 'get', 'create', 'update', 'delete']
+
 
 
 #

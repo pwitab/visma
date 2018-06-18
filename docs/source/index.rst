@@ -7,6 +7,8 @@ Visma is a python client/ORM for the Visma eAccounting API
    :maxdepth: 2
    :caption: Contents:
 
+   installation
+
 
 
 Indices and tables

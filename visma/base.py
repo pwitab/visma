@@ -64,6 +64,13 @@ class VismaModelMeta(type):
             manager.register_model(new_class, 'objects')
             manager.endpoint = endpoint
             manager.register_schema(schema_klass)
+            allowed_methods = getattr(meta, 'allowed_methods')
+            # Save the allowed methods for use in the manager. Make upper to
+            # ensure that you can use both lower and upper when defining in
+            # model
+            manager.allowed_methods = [method.upper() for method in
+                                       allowed_methods]
+
             api_klass_path = os.environ.get('VISMA_API_CLASS',
                                             default='visma.api.VismaAPI')
             api_klass = import_string(api_klass_path)
