@@ -1,6 +1,5 @@
 import copy
 import os
-from pprint import pprint
 
 from marshmallow import Schema, post_load
 from marshmallow.base import FieldABC
@@ -15,7 +14,6 @@ class VismaSchema(Schema):
 
     @post_load
     def make_instance(self, data):
-        pprint(data)
         return self.visma_model(**data)
 
 
@@ -143,17 +141,15 @@ class VismaModel(metaclass=VismaModelMeta):
 
         if self.id is None:
             # create a new model
-            print('Saving data')
-            updated_obj = self.objects.create(self)
-            self._update_value(obj=updated_obj)
+            new_obj = self.objects.create(self)
+            self._update_value(obj=new_obj)
 
         else:
             # update model
-            print('Updating object')
-            self.objects.update(self)
+            updated_obj = self.objects.update(self)
+            self._update_value(obj=updated_obj)
 
     def delete(self):
-        print('Deleting object ')
         self.objects.delete(self.id)
 
     def __repr__(self):

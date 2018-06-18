@@ -1,7 +1,9 @@
 import json
-from pprint import pprint
+import logging
 
 from visma.api import VismaClientException
+
+logger = logging.getLogger(__name__)
 
 
 class Manager:
@@ -32,41 +34,43 @@ class Manager:
         self.verify_method('LIST')
         data = self.api.get(self.endpoint).json()
         r_data = data['Data']
-        pprint(r_data)
-        pprint(self.schema)
+        logger.debug(f'Received: {r_data}')
         return self.schema.load(data=r_data, many=True)
 
     def get(self, pk):
         self.verify_method('GET')
         _endpoint = f'{self.endpoint}/{pk}'
         data = self.api.get(_endpoint).json()
-        pprint(data)
+        logger.debug(f'Received: {data}')
         obj = self.schema.load(data)
         return obj
 
     def create(self, obj):
         self.verify_method('CREATE')
-        data = self.schema.dump(obj)
-        pprint(data)
-        result = self.api.post(self.endpoint, json.dumps(data))
-        pprint(result.json())
-        new_obj = self.schema.load(result.json())
+        out_data = self.schema.dump(obj)
+        logger.debug(f'Sending: {out_data}')
+        result = self.api.post(self.endpoint, json.dumps(out_data))
+        in_data = result.json()
+        logger.debug(f'Received {in_data}')
+        new_obj = self.schema.load(in_data)
         return new_obj
 
     def update(self, obj):
         self.verify_method('UPDATE')
         pk = obj.id
         _endpoint = f'{self.endpoint}/{pk}'
-        pprint(f'PUT {_endpoint}')
-        data = self.schema.dump(obj)
-        pprint(data)
-        result = self.api.put(_endpoint, json.dumps(data))
-        pprint(result.json())
-        return result
+        out_data = self.schema.dump(obj)
+        logger.debug(f'Sending {out_data}')
+        result = self.api.put(_endpoint, json.dumps(out_data))
+        in_data = result.json()
+        logger.debug(f'Received {in_data}')
+        updated_obj = self.schema.load(in_data)
+        return updated_obj
 
     def delete(self, pk):
         self.verify_method('DELETE')
         _endpoint = f'{self.endpoint}/{pk}'
+        logger.debug(f'Deleting object at: {_endpoint}')
         result = self.api.delete(_endpoint)
         return result
 

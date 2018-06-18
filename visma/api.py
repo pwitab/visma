@@ -115,13 +115,6 @@ class VismaAPI:
                                  auth=(self.client_id, self.client_secret),
                                  headers=headers)
 
-        print(data)
-        print(headers)
-        sending = response.request
-        print(sending.headers)
-        print(sending.body)
-        # TODO: What is id_token used for?
-
         if response.status_code != 200:
             raise VismaAPIException(f'Couldn\'t refresh token: '
                                     f'{response.content}, Client_id={self.client_id}')
