@@ -573,12 +573,9 @@ class CustomerInvoiceDraft(VismaModel):
         allowed_methods = ['list', 'get', 'create', 'update', 'delete']
 
 
-
-#
 # ########################################################################
 # Models below need moderating, generated from swagger-marshmallow-codegen
 # ########################################################################
-
 
 class AccountBalance(VismaModel):
     account_number = fields.Integer(
@@ -598,10 +595,7 @@ class AccountBalance(VismaModel):
         # GET /v2/accountbalances/{date}
         # GET /v2/accountbalances/{accountNumber}/{date}
 
-        # TODO: Meta should state available HTTP Methods.
-        # And handling for several endpoints.
-        # or just use main endpoint and filter?
-
+        # TODO: how to handle endpoints that doesn't use a pk?
         pass
 
 
@@ -660,7 +654,9 @@ class Account(VismaModel):
         # Get a single account by account number
         # PUT /v2/accounts/{fiscalyearId}/{accountNumber}
         # Replaces a account in a given fiscalyear
-        pass
+        endpoint = '/accounts'
+        allowed_methods = ['list', 'create']
+        # TODO: how to handle the special cases?
 
 
 class AccountType(VismaModel):
@@ -672,7 +668,8 @@ class AccountType(VismaModel):
         # Gets the default account types.
         # This is applicable on all countries but most relevant for the
         #  Netherlands
-        pass
+        endpoint = '/accounttypes'
+        allowed_methods = ['list']
 
 
 class AllocationPeriod(VismaModel):
@@ -710,7 +707,8 @@ class AllocationPeriod(VismaModel):
         # Add allocation periods for voucher or supplier invoice.
         # GET /v2/allocationperiods/{allocationPeriodId}
         # Get single allocation period.
-        pass
+        endpoint = '/allocationperiods'
+        allowed_methods = ['list', 'create', 'get']
 
 
 class AllocationPeriodRow(VismaModel):
@@ -752,6 +750,7 @@ class Approval(VismaModel):
 
     class Meta:
         # TODO: Maybe split into 2 subclasses to separate endpoints for vat and invoices and useage.
+        # TODO: How to make abstract classes?
         # PUT /v2/approval/vatreport/{id}
         # Update the approval status of a vat report
         # PUT /v2/approval/supplierinvoice/{id}
@@ -799,7 +798,9 @@ class ArticleAccountCoding(VismaModel):
         # Get a single article account coding.
         #  Vat rates are on present UTC time.
         # Specify date (yyyy-MM-dd) to get for specific date.
-        pass
+        endpoint = '/articleaccountcodings'
+        allowed_methods = ['list', 'get']
+        # TODO: How to handle custom query parameters?
 
 
 class ArticleLabel(VismaModel):
@@ -827,7 +828,8 @@ class ArticleLabel(VismaModel):
         # Gets an articlelabel by id.
         # PUT /v2/articlelabels/{articleLabelId}
         # Replace content of an articlelabel.
-        pass
+        endpoint = '/articlelabels'
+        allowed_methods = ['list', 'create', 'get', 'update', 'delete']
 
 
 class Article(VismaModel):
@@ -922,7 +924,8 @@ class Article(VismaModel):
         # Gets an article by id.
         # PUT /v2/articles/{articleId}
         # Replace the data in an article.
-        pass
+        endpoint = '/articles'
+        allowed_methods = ['list', 'get', 'create', 'update']
 
 
 class AttachmentLink(VismaModel):
@@ -949,7 +952,8 @@ class AttachmentLink(VismaModel):
         # Create a new links between a document and a set of attachments.
         # DELETE /v2/attachmentlinks/{attachmentId}
         # Delete the link to an attachment.
-        pass
+        endpoint = '/attachmentlinks'
+        allowed_methods = ['create', 'delete']
 
 
 # TODO: How to handle when different schemas are used for Post and get?
@@ -991,7 +995,8 @@ class AttachmentResult(VismaModel):
         # Delete an attachment.
         # GET /v2/attachments/{attachmentId}
         # Get a specific attachment.
-        pass
+        endpoint = '/attachments'
+        allowed_methods = ['list', 'get', 'delete']
 
 
 class AttachmentUpload(VismaModel):
@@ -1010,7 +1015,8 @@ class AttachmentUpload(VismaModel):
 
     class Meta:
         # is used for uploading attachements
-        pass
+        endpoint = '/attachments'
+        allowed_methods = ['create']
 
 
 class BankAccount(VismaModel):
@@ -1064,7 +1070,8 @@ class BankAccount(VismaModel):
         # Get a specific bank account.
         # PUT /v2/bankaccounts/{bankAccountId}
         # Replace the data in a bank account.
-        pass
+        endpoint = '/bankaccounts'
+        allowed_methods = ['list', 'create', 'get', 'update', 'delete']
 
 
 class Bank(VismaModel):
@@ -1074,7 +1081,8 @@ class Bank(VismaModel):
     class Meta:
         # GET /v2/banks
         # Get banks.
-        pass
+        endpoint = '/banks'
+        allowed_methods = ['list']
 
 
 class CompanySettings(VismaModel):
@@ -1186,7 +1194,8 @@ class CompanySettings(VismaModel):
     class Meta:
         # /v2/companysettings Get company settings.
         # PUT /v2/companysettings Replace company settings
-        pass
+        endpoint = '/companysettings'
+        allowed_methods = ['list', 'update']
 
 
 class CostCenterItem(VismaModel):
@@ -1216,7 +1225,8 @@ class CostCenterItem(VismaModel):
         # Create a single CostCenterItem.
         # PUT /v2/costcenteritems/{costCenterItemId}
         # Replace the data in an CostCenterItem.
-        pass
+        endpoint = '/costcenteritems'
+        allowed_methods = ['create', 'get', 'update']
 
 
 class CostCenter(VismaModel):
@@ -1231,7 +1241,8 @@ class CostCenter(VismaModel):
     class Meta:
         # GET /v2/costcenters Get a list of Cost Centers
         # PUT /v2/costcenters/{id} Replace content in a cost center.
-        pass
+        endpoint = '/costcenters'
+        allowed_methods = ['list', 'update']
 
 
 class Country(VismaModel):
@@ -1242,7 +1253,8 @@ class Country(VismaModel):
     class Meta:
         # GET /v2/countries Get a list of Countries.
         # GET /v2/countries/{countrycode} Get a singel country.
-        pass
+        endpoint = '/countries'
+        allowed_methods = ['list']
 
 
 class Currency(VismaModel):
@@ -1250,7 +1262,8 @@ class Currency(VismaModel):
 
     class Meta:
         # GET /v2/currencies Get a list of Currencies
-        pass
+        endpoint = '/currencies'
+        allowed_methods = ['list']
 
 
 class SalesDocumentRotRutReductionPerson(VismaModel):
@@ -1442,7 +1455,9 @@ class CustomerInvoice(VismaModel):
         # POST /v2/customerinvoices/{invoiceId}/payments
         # Post a payment towards a bookkept customer invoice.
         # Use factoring fee and account number in order to pay with factoring
-        pass
+        endpoint = '/customerinvoices'
+        allowed_methods = ['list', 'create', 'get']
+        # TODO: Handle special cases. Subclassing?
 
 
 class CustomerInvoiceRow(VismaModel):
@@ -1520,7 +1535,8 @@ class CustomerLabel(VismaModel):
         # Gets an customerlabel by id.
         # PUT /v2/customerlabels/{customerLabelId}
         # Replace content of an articlelabel.
-        pass
+        endpoint = '/customerlabels'
+        allowed_methods = ['list', 'create', 'get', 'update', 'delete']
 
 
 class CustomerLedgerItem(VismaModel):
@@ -1584,7 +1600,8 @@ class CustomerLedgerItem(VismaModel):
         # Create a customer ledger item.
         # GET /v2/customerledgeritems/{customerLedgerItemId}
         # Get a customer ledger item by id.
-        pass
+        endpoint = '/customerledgeritems'
+        allowed_methods = ['list', 'create', 'get']
 
 
 class CustomerLedgerItemWithVoucher(VismaModel):
@@ -1636,6 +1653,9 @@ class CustomerLedgerItemWithVoucher(VismaModel):
         # Only used on one endpoint
         # POST /v2/customerledgeritems/customerledgeritemswithvoucher
         # Create a customer ledger item and a voucher included.
+        # endpoint = '/'
+        # allowed_methods = ['list', 'create', 'get', 'update', 'delete']
+        # TODO: how to handle this case?
         pass
 
 
@@ -1649,7 +1669,8 @@ class DeliveryMethod(VismaModel):
         # Get delivery methods.
         # GET /v2/deliverymethods/{deliveryMethodId}
         # Get a delivery method.
-        pass
+        endpoint = '/deliverymethods'
+        allowed_methods = ['list', 'get']
 
 
 class DeliveryTerm(VismaModel):
@@ -1662,7 +1683,8 @@ class DeliveryTerm(VismaModel):
         # Get a list of delivery terms
         # GET /v2/deliveryterms/{deliveryTermId}
         # Get single delivery term
-        pass
+        endpoint = '/deliveryterms'
+        allowed_methods = ['list', 'get']
 
 
 class Document(VismaModel):
@@ -1697,7 +1719,8 @@ class Document(VismaModel):
 
     class Meta:
         # GET /v2/documents/{id} Get a vat report pdf by document id.
-        pass
+        endpoint = '/documents'
+        allowed_methods = ['get']
 
 
 class FiscalYear(VismaModel):
@@ -1723,7 +1746,8 @@ class FiscalYear(VismaModel):
         # GET /v2/fiscalyears Get a list of fiscal years.
         # POST /v2/fiscalyears Create a fiscal year.
         # GET /v2/fiscalyears/{id} Get a singel fiscal year.
-        pass
+        endpoint = '/fiscalyears'
+        allowed_methods = ['list', 'create', 'get']
 
 
 class OpeningBalances(VismaModel):
@@ -1736,7 +1760,8 @@ class OpeningBalances(VismaModel):
         # Gets the opening balances of the first fiscal year.
         # If you want balances of following years,
         # use the GET /accountbalances instead.
-        pass
+        endpoint = '/fiscalyears/openingbalances'
+        allowed_methods = ['list']
 
 
 class ForeignPaymentCodes(VismaModel):
@@ -1747,7 +1772,8 @@ class ForeignPaymentCodes(VismaModel):
 
     class Meta:
         # GET /v2/foreignpaymentcodes Gets a list of foreign payment codes.
-        pass
+        endpoint = '/foreignpaymentcodes'
+        allowed_methods = ['list']
 
 
 class MessageThread(VismaModel):
@@ -1780,7 +1806,8 @@ class MessageThread(VismaModel):
         # Replies to a message thread.
         # PUT /v2/messagethreads/{messageThreadId}
         # Marks a specific message thread.
-        pass
+        endpoint = '/messagethreads'
+        allowed_methods = ['list', 'create', 'get', 'update']
 
 
 class MessageReceiver(VismaModel):
@@ -1817,7 +1844,9 @@ class Message(VismaModel):
         # Retrives the messages of a message thread.
         # GET /v2/messagethreads/messages
         # Gets all the messages of the threads.
-        pass
+        endpoint = '//messagethreads/messages'
+        allowed_methods = ['list']
+        # TODO: how to handle this case?
 
 
 class MessageStatus(VismaModel):
@@ -1856,7 +1885,8 @@ class MessageToPost(VismaModel):
     class Meta:
         # used only for posting messages
         # POST /v2/messagethreads Create a new message thread.
-        pass
+        endpoint = '/messagethreads'
+        allowed_methods = ['create']
 
 
 class Note(VismaModel):
@@ -1906,7 +1936,8 @@ class Note(VismaModel):
         # POST /v2/notes Create a new note.
         # GET /v2/notes/{noteId} Get a specific note.
         # PUT /v2/notes/{noteId} Updates a note.
-        pass
+        endpoint = '/notes'
+        allowed_methods = ['list', 'create', 'get', 'update']
 
 
 class Order(VismaModel):
@@ -2073,7 +2104,8 @@ class Order(VismaModel):
         # DELETE /v2/orders/{id} Delete an order.
         # GET /v2/orders/{id} Get order
         # PUT /v2/orders/{id} Replace content in an order.
-        pass
+        endpoint = '/orders'
+        allowed_methods = ['list', 'create', 'get', 'update', 'delete']
 
 
 class OrderRow(VismaModel):
@@ -2167,7 +2199,8 @@ class PartnerResourceLink(VismaModel):
         # Get a partner resource link by id.
         # PUT /v2/partnerresourcelinks/{partnerResourceLinkId}
         # Update a partner resource link
-        pass
+        endpoint = '/partnerresourcelinks'
+        allowed_methods = ['list', 'create', 'get', 'update', 'delete']
 
 
 class Project(VismaModel):
@@ -2206,7 +2239,8 @@ class Project(VismaModel):
         # POST /v2/projects Create a new project.
         # GET /v2/projects/{id} Get a specific project.
         # PUT /v2/projects/{id} Replace content in a project.
-        pass
+        endpoint = '/projects'
+        allowed_methods = ['list', 'create', 'get', 'update']
 
 
 class SalesDocumentAttachment(VismaModel):
@@ -2231,6 +2265,8 @@ class SalesDocumentAttachment(VismaModel):
         # DELETE /v2/salesdocumentattachments/customerinvoice/{customerInvoiceId}/{attachmentId}
         # Delete a document attached to a customer invoice (including customer ledger items).
         # TODO: Maybe subclass so separte between invoicedraft and invoice
+        # endpoint = '/'
+        # allowed_methods = ['list', 'create', 'get', 'update', 'delete']
         pass
 
 
@@ -2331,7 +2367,8 @@ class SupplierInvoiceDraft(VismaModel):
         # Get a single supplier invoice draft.
         # PUT /v2/supplierinvoicedrafts/{supplierInvoiceDraftId}
         # Relpace content in a supplier invoice draft.
-        pass
+        endpoint = '/supplierinvoicedrafts'
+        allowed_methods = ['list', 'create', 'get', 'update', 'delete']
 
 
 class SupplierInvoiceDraftRow(VismaModel):
@@ -2471,7 +2508,9 @@ class SupplierInvoice(VismaModel):
         # Get a supplier
         # POST /v2/supplierinvoices/{invoiceId}/payments
         # Post a payment towards a bookkept supplier invoice
-        pass
+        endpoint = '/supplierinvoices'
+        allowed_methods = ['list', 'create', 'get', 'update']
+        # TODO: How to handle the payment
 
 
 class SupplierInvoiceRow(VismaModel):
@@ -2684,7 +2723,8 @@ class Supplier(VismaModel):
         # DELETE /v2/suppliers/{supplierId} Deletes a supplier
         # GET /v2/suppliers/{supplierId} Get a specific supplier.
         # PUT /v2/suppliers/{supplierId} Replace a supplier
-        pass
+        endpoint = '/suppliers'
+        allowed_methods = ['list', 'create', 'get', 'update', 'delete']
 
 
 class Unit(VismaModel):
@@ -2696,7 +2736,8 @@ class Unit(VismaModel):
     class Meta:
         # GET /v2/units Get a list of Units
         # GET /v2/units/{id} Get a singel unit.
-        pass
+        endpoint = '/units'
+        allowed_methods = ['list', 'get']
 
 
 class User(VismaModel):
@@ -2710,7 +2751,8 @@ class User(VismaModel):
 
     class Meta:
         # GET /v2/users Get a list of users
-        pass
+        endpoint = '/users'
+        allowed_methods = ['list']
 
 
 class VatReport(VismaModel):
@@ -2755,7 +2797,8 @@ class VatReport(VismaModel):
     class Meta:
         # GET /v2/vatreports Gets a list of all vat reports
         # GET /v2/vatreports/{id} Get a vat report item by id.
-        pass
+        endpoint = '/vatreports'
+        allowed_methods = ['list', 'get']
 
 
 class DocumentApprovalEvent(VismaModel):
@@ -2786,7 +2829,8 @@ class VatCode(VismaModel):
     class Meta:
         # GET /v2/vatcodes Gets a list of all Vat Codes
         # GET /v2/vatcodes/{id} Get a vat code item by it's id
-        pass
+        endpoint = '/vatcodes'
+        allowed_methods = ['list', 'get']
 
 
 class RelatedAccounts(VismaModel):
@@ -2862,7 +2906,9 @@ class Voucher(VismaModel):
         # Get all vouchers in a given fiscal year.
         # GET /v2/vouchers/{fiscalyearId}/{voucherId}
         # Get a single voucher from a given fiscal year
-        pass
+        endpoint = '/vouchers'
+        allowed_methods = ['list', 'create']
+        # TODO: how to handle voucher and fiscal year?
 
 
 class VoucherRow(VismaModel):
@@ -2947,7 +2993,8 @@ class WebshopOrder(VismaModel):
         # POST /v2/webshoporders/{webshopOrderId}/convert
         # Converts a webshop order to a invoice.
         #  The resulted invoice will appear as paid in the sales invoice list.
-        pass
+        endpoint = '/webshoporders'
+        allowed_methods = ['list', 'get']
 
 
 class WebshopOrderRow(VismaModel):
