@@ -1,17 +1,11 @@
 from marshmallow.validate import OneOf, Length, Regexp, Range
-
-from visma.base import VismaModel, VismaSchema
 from marshmallow import fields
 
+from visma.base import VismaModel, VismaSchema
 
-# TODO: Should I use Float instead of Number since I can specify places? And no need for regex
-
-# Should have reference to the actual ModelSchema of the supplied Model
-# Create in meta?
 
 class PaginatedResponse(VismaModel):
     meta = fields.Nested('PaginationMetadataSchema', data_key='Meta')
-    # data = fields.List(fields.Nested('AccountBalanceAPI'), data_key='Data')
 
 
 class PaginationMetadata(VismaModel):

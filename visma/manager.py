@@ -2,7 +2,6 @@ import json
 import logging
 
 from visma.api import VismaClientException
-
 logger = logging.getLogger(__name__)
 
 class Manager:

@@ -2,6 +2,10 @@
 Changelog
 =========
 
+0.0.3
+-----
+Added handling of enveloped schemas.
+
 0.0.2
 -----
 Handling of allowed methods on objects. Adding methods and endpoints to all models

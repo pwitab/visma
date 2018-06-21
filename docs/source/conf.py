@@ -52,8 +52,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Visma'
-copyright = '2018, Henrik Palmlund Wahlgren'
-author = 'Henrik Palmlund Wahlgren'
+copyright = '2018, Palmlund Wahlgren Innovative Technology AB'
+author = 'Palmlund Wahlgren Innovative Technology AB'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

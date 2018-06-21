@@ -50,6 +50,8 @@ endpoint
     Specifies the main enpoint for a class.
 allowed_methods
     Specifies the allowed methods on the class.
+envelopes
+    Specifies how to handle enveloped schemas on endpoints.
 
 
 Endpoints and methods
@@ -63,7 +65,7 @@ If you specify and endpoint for example /customer, you will get the following
 behaviour
 
 list
-    accessable visa .all(). Does a get and get everything from /customers
+    accessible via .all(). Does a get and get everything from /customers
 get
     given an id it will do a GET on /customers/{id}
 create
@@ -74,5 +76,48 @@ delete
     can be called on the object or on the model with an id to issue a DELETE to /customers/{id}
 
 Some API endpoint does not have support of all methods so you have to list them in the Meta as a list.
+
+Enveloped Schemas
+-----------------
+
+When communicating with an API the data sent might be more than the data you want to get or change.
+For example getting a list of resources on an endpoint that supports pagination you might get meta data like number of pages and current page in a metadata section.
+
+By defining a model for the outer data it is possible to handle this in a simple way by adding the envelope settings in the Meta data of the classes that uses envelope.
+
+.. code-block:: python
+
+    class PaginatedResponse(VismaModel):
+        meta = fields.Nested('PaginationMetadataSchema', data_key='Meta')
+
+
+    class PaginationMetadata(VismaModel):
+        current_page = fields.Integer(data_key='CurrentPage')
+        page_size = fields.Integer(data_key='PageSize')
+        total_number_of_pages = fields.Integer(data_key='TotalNumberOfPages')
+        total_number_of_results = fields.Integer(data_key='TotalNumberOfResults')
+        server_time_utc = fields.DateTime(data_key='ServerTimeUtc')
+
+    class Customer(VismaModel):
+        name = fields.String(data_key='Name')
+
+        class Meta:
+            endpoint = '/customers'
+            allowed_methods = ['list', 'create', 'delete']
+            envelopes = {'list': {'class': PaginatedResponse,
+                                  'data_attr': 'Data'}}
+
+This will allow the following data response to return an object of Customer.
+
+.. code-block:: bash
+
+    {'Data': [{'Name': 'Customer-Name'},],
+     'Meta': {'CurrentPage': 1,
+              'PageSize': 50,
+              'ServerTimeUtc': '2018-06-21T16:23:13.1083743Z',
+              'TotalNumberOfPages': 1,
+              'TotalNumberOfResults': 37}}
+
+
 
 
