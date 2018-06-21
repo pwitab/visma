@@ -1,10 +1,25 @@
 from marshmallow.validate import OneOf, Length, Regexp, Range
 
-from visma.base import VismaModel
+from visma.base import VismaModel, VismaSchema
 from marshmallow import fields
 
 
 # TODO: Should I use Float instead of Number since I can specify places? And no need for regex
+
+# Should have reference to the actual ModelSchema of the supplied Model
+# Create in meta?
+
+class PaginatedResponse(VismaModel):
+    meta = fields.Nested('PaginationMetadataSchema', data_key='Meta')
+    # data = fields.List(fields.Nested('AccountBalanceAPI'), data_key='Data')
+
+
+class PaginationMetadata(VismaModel):
+    current_page = fields.Integer(data_key='CurrentPage')
+    page_size = fields.Integer(data_key='PageSize')
+    total_number_of_pages = fields.Integer(data_key='TotalNumberOfPages')
+    total_number_of_results = fields.Integer(data_key='TotalNumberOfResults')
+    server_time_utc = fields.DateTime(data_key='ServerTimeUtc')
 
 
 class Customer(VismaModel):
@@ -245,7 +260,8 @@ class Customer(VismaModel):
     class Meta:
         endpoint = '/customers'
         allowed_methods = ['list', 'get', 'create', 'update', 'delete']
-
+        envelope_class = PaginatedResponse
+        envelope_on = ['list']
 
 
 class TermsOfPayment(VismaModel):
@@ -270,6 +286,9 @@ class TermsOfPayment(VismaModel):
         """
         endpoint = '/termsofpayments'
         allowed_methods = ['list', 'get']
+        envelope_class = PaginatedResponse
+        envelope_on = ['list']
+
 
 
 class CustomerInvoiceDraftRow(VismaModel):
@@ -3010,3 +3029,5 @@ class WebshopOrderRow(VismaModel):
     class Meta:
         # No endpoint
         pass
+
+

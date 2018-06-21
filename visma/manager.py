@@ -4,7 +4,7 @@ import logging
 from visma.api import VismaClientException
 
 logger = logging.getLogger(__name__)
-
+import pprint
 
 class Manager:
     def __init__(self):
@@ -15,6 +15,9 @@ class Manager:
         self.allowed_methods = list()
         self.schema = None
         self._schema = None
+        self.envelope = None
+        self._envelope = None
+        self.envelope_on = list()
 
     def register_model(self, model, name):
         self.name = self.name or name
@@ -24,18 +27,29 @@ class Manager:
         self._schema = schema_klass
         self.schema = self._schema()
 
+    def register_envelope(self, envelope_klass):
+        self._envelope = envelope_klass._schema_klass
+        self.envelope = self._envelope()
+
     def verify_method(self, method):
         if method not in self.allowed_methods:
             raise VismaClientException(
                 f'{method} is not an allowed method on this '
                 'object')
 
+    def use_envelope(self, method):
+        return method in self.envelope_on
+
     def all(self):
         self.verify_method('LIST')
-        data = self.api.get(self.endpoint).json()
-        r_data = data['Data']
-        logger.debug(f'Received: {r_data}')
-        return self.schema.load(data=r_data, many=True)
+        in_data = self.api.get(self.endpoint).json()
+        logger.debug(f'Received: {in_data}')
+        pprint.pprint(in_data)
+        if self.use_envelope('LIST'):
+            objs = self.envelope.load(in_data).data
+        else:
+            objs = self.schema.load(data=in_data, many=True)
+        return objs
 
     def get(self, pk):
         self.verify_method('GET')

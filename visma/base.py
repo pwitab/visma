@@ -1,7 +1,7 @@
 import copy
 import os
 
-from marshmallow import Schema, post_load
+from marshmallow import Schema, post_load, fields
 from marshmallow.base import FieldABC
 from marshmallow.utils import _Missing
 
@@ -53,16 +53,19 @@ class VismaModelMeta(type):
         schema_dict['visma_model'] = new_class
 
         schema_klass = type(schema_name, (VismaSchema,), schema_dict)
+        new_class._schema_klass = schema_klass
 
         attr_meta = attrs.pop('Meta', None)
         meta = attr_meta or getattr(new_class, 'Meta', None)
-        try:
-            endpoint = getattr(meta, 'endpoint')
+
+        endpoint = getattr(meta, 'endpoint', None)
+        if endpoint is not None:
             manager = Manager()
             manager.register_model(new_class, 'objects')
             manager.endpoint = endpoint
             manager.register_schema(schema_klass)
-            allowed_methods = getattr(meta, 'allowed_methods')
+            # TODO: this is required on endpoint. Maybe an exeption?
+            allowed_methods = getattr(meta, 'allowed_methods', None)
             # Save the allowed methods for use in the manager. Make upper to
             # ensure that you can use both lower and upper when defining in
             # model
@@ -73,10 +76,25 @@ class VismaModelMeta(type):
                                             default='visma.api.VismaAPI')
             api_klass = import_string(api_klass_path)
             manager.api = api_klass.load()
+
             new_class.objects = manager
 
-        except AttributeError:
-            pass
+            envelope_klass = getattr(meta, 'envelope_class', None)
+            envelope_attr = getattr(meta, 'envelope_attr', 'Data')
+            if envelope_klass is None:
+                return new_class
+            sub_envelop_klass_name = envelope_klass.__name__ + name
+            sub_envelop_klass = type(sub_envelop_klass_name, (envelope_klass,),
+                                     {'data': fields.List(
+                                         fields.Nested(schema_name),
+                                        required=True,
+                                        data_key=envelope_attr)})
+            # TODO: missing visma model when only derriving from vismaschema
+            manager.register_envelope(sub_envelop_klass)
+            # TODO: is required when specifying envelope.
+            envelope_on = getattr(meta, 'envelope_on', None)
+            manager.envelope_on = [method.upper() for method in
+                                   envelope_on]
 
         return new_class
 
