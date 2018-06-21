@@ -79,22 +79,19 @@ class VismaModelMeta(type):
 
             new_class.objects = manager
 
-            envelope_klass = getattr(meta, 'envelope_class', None)
-            envelope_attr = getattr(meta, 'envelope_attr', 'Data')
-            if envelope_klass is None:
-                return new_class
-            sub_envelop_klass_name = envelope_klass.__name__ + name
-            sub_envelop_klass = type(sub_envelop_klass_name, (envelope_klass,),
-                                     {'data': fields.List(
-                                         fields.Nested(schema_name),
-                                        required=True,
-                                        data_key=envelope_attr)})
-            # TODO: missing visma model when only derriving from vismaschema
-            manager.register_envelope(sub_envelop_klass)
-            # TODO: is required when specifying envelope.
-            envelope_on = getattr(meta, 'envelope_on', None)
-            manager.envelope_on = [method.upper() for method in
-                                   envelope_on]
+            envelopes = getattr(meta, 'envelopes', dict())
+            for envelope_method, envelope_settings in envelopes.items():
+
+                envelope_klass = envelope_settings.get('class')
+                data_attr = envelope_settings.get('data_attr')
+                sub_envelop_klass_name = envelope_klass.__name__ + name
+                sub_envelop_klass = type(sub_envelop_klass_name,
+                                         (envelope_klass,),
+                                         {'data': fields.List(
+                                             fields.Nested(schema_name),
+                                             required=True,
+                                             data_key=data_attr)})
+                manager.register_envelope(envelope_method, sub_envelop_klass)
 
         return new_class
 

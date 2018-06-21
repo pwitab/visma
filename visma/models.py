@@ -167,7 +167,7 @@ class Customer(VismaModel):
     note = fields.String(description='Max length: 4000 characters',
                          validate=[Length(min=0, max=4000, )],
                          data_key='Note',
-        allow_none=True)
+                         allow_none=True)
     reverse_charge_on_construction_services = fields.Boolean(
         description=('Default: false. '
                      'Purpose: If true, VatNumber must be set aswell'),
@@ -192,7 +192,7 @@ class Customer(VismaModel):
         data_key='TermsOfPaymentId')
     terms_of_payment = fields.Nested('TermsOfPaymentSchema',
                                      data_key='TermsOfPayment',
-        allow_none=True)
+                                     allow_none=True)
     vat_number = fields.String(
         description=('Max length: 20 characters. Format: 2 character country '
                      'code followed by 8-12 numbers.'),
@@ -233,18 +233,18 @@ class Customer(VismaModel):
         default=True,
         allow_none=True)
     edi_gln_number = fields.String(data_key='EdiGlnNumber',
-        allow_none=True)
+                                   allow_none=True)
     sales_document_language = fields.String(
         description='Max length: 2 characters',
         validate=[Length(min=0, max=2, )],
         data_key='SalesDocumentLanguage',
         allow_none=True)
     electronic_address = fields.String(data_key='ElectronicAddress',
-        allow_none=True)
+                                       allow_none=True)
     electronic_reference = fields.String(data_key='ElectronicReference',
-        allow_none=True)
+                                         allow_none=True)
     edi_service_deliverer_id = fields.String(data_key='EdiServiceDelivererId',
-        allow_none=True)
+                                             allow_none=True)
     auto_invoice_activation_email_sent_date = fields.DateTime(
         data_key='AutoInvoiceActivationEmailSentDate',
         allow_none=True)
@@ -252,7 +252,7 @@ class Customer(VismaModel):
         data_key='AutoInvoiceRegistrationRequestSentDate',
         allow_none=True)
     email_addresses = fields.List(fields.String(), data_key='EmailAddresses',
-        allow_none=True)
+                                  allow_none=True)
 
     # customer_labels = fields.List(fields.Nested('CustomerLabelSchema'),
     #                              data_key='CustomerLabels')
@@ -261,7 +261,10 @@ class Customer(VismaModel):
         endpoint = '/customers'
         allowed_methods = ['list', 'get', 'create', 'update', 'delete']
         envelope_class = PaginatedResponse
-        envelope_on = ['list']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class TermsOfPayment(VismaModel):
@@ -286,9 +289,10 @@ class TermsOfPayment(VismaModel):
         """
         endpoint = '/termsofpayments'
         allowed_methods = ['list', 'get']
-        envelope_class = PaginatedResponse
-        envelope_on = ['list']
-
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class CustomerInvoiceDraftRow(VismaModel):
@@ -590,7 +594,10 @@ class CustomerInvoiceDraft(VismaModel):
         # Converts a CustomerInvoiceDraft to a CustomerInvoice.
         endpoint = '/customerinvoicedrafts'
         allowed_methods = ['list', 'get', 'create', 'update', 'delete']
-
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 # ########################################################################
 # Models below need moderating, generated from swagger-marshmallow-codegen
@@ -675,6 +682,10 @@ class Account(VismaModel):
         # Replaces a account in a given fiscalyear
         endpoint = '/accounts'
         allowed_methods = ['list', 'create']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
         # TODO: how to handle the special cases?
 
 
@@ -689,6 +700,10 @@ class AccountType(VismaModel):
         #  Netherlands
         endpoint = '/accounttypes'
         allowed_methods = ['list']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class AllocationPeriod(VismaModel):
@@ -728,6 +743,10 @@ class AllocationPeriod(VismaModel):
         # Get single allocation period.
         endpoint = '/allocationperiods'
         allowed_methods = ['list', 'create', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class AllocationPeriodRow(VismaModel):
@@ -819,6 +838,10 @@ class ArticleAccountCoding(VismaModel):
         # Specify date (yyyy-MM-dd) to get for specific date.
         endpoint = '/articleaccountcodings'
         allowed_methods = ['list', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
         # TODO: How to handle custom query parameters?
 
 
@@ -849,6 +872,10 @@ class ArticleLabel(VismaModel):
         # Replace content of an articlelabel.
         endpoint = '/articlelabels'
         allowed_methods = ['list', 'create', 'get', 'update', 'delete']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class Article(VismaModel):
@@ -945,6 +972,10 @@ class Article(VismaModel):
         # Replace the data in an article.
         endpoint = '/articles'
         allowed_methods = ['list', 'get', 'create', 'update']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class AttachmentLink(VismaModel):
@@ -973,6 +1004,7 @@ class AttachmentLink(VismaModel):
         # Delete the link to an attachment.
         endpoint = '/attachmentlinks'
         allowed_methods = ['create', 'delete']
+
 
 
 # TODO: How to handle when different schemas are used for Post and get?
@@ -1016,6 +1048,10 @@ class AttachmentResult(VismaModel):
         # Get a specific attachment.
         endpoint = '/attachments'
         allowed_methods = ['list', 'get', 'delete']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class AttachmentUpload(VismaModel):
@@ -1102,6 +1138,10 @@ class Bank(VismaModel):
         # Get banks.
         endpoint = '/banks'
         allowed_methods = ['list']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class CompanySettings(VismaModel):
@@ -1215,6 +1255,10 @@ class CompanySettings(VismaModel):
         # PUT /v2/companysettings Replace company settings
         endpoint = '/companysettings'
         allowed_methods = ['list', 'update']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class CostCenterItem(VismaModel):
@@ -1248,6 +1292,7 @@ class CostCenterItem(VismaModel):
         allowed_methods = ['create', 'get', 'update']
 
 
+
 class CostCenter(VismaModel):
     name = fields.String(
         validate=[Length(min=0, max=20)],
@@ -1262,6 +1307,10 @@ class CostCenter(VismaModel):
         # PUT /v2/costcenters/{id} Replace content in a cost center.
         endpoint = '/costcenters'
         allowed_methods = ['list', 'update']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class Country(VismaModel):
@@ -1274,6 +1323,10 @@ class Country(VismaModel):
         # GET /v2/countries/{countrycode} Get a singel country.
         endpoint = '/countries'
         allowed_methods = ['list']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class Currency(VismaModel):
@@ -1283,6 +1336,10 @@ class Currency(VismaModel):
         # GET /v2/currencies Get a list of Currencies
         endpoint = '/currencies'
         allowed_methods = ['list']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class SalesDocumentRotRutReductionPerson(VismaModel):
@@ -1476,6 +1533,10 @@ class CustomerInvoice(VismaModel):
         # Use factoring fee and account number in order to pay with factoring
         endpoint = '/customerinvoices'
         allowed_methods = ['list', 'create', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
         # TODO: Handle special cases. Subclassing?
 
 
@@ -1556,6 +1617,10 @@ class CustomerLabel(VismaModel):
         # Replace content of an articlelabel.
         endpoint = '/customerlabels'
         allowed_methods = ['list', 'create', 'get', 'update', 'delete']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class CustomerLedgerItem(VismaModel):
@@ -1621,6 +1686,10 @@ class CustomerLedgerItem(VismaModel):
         # Get a customer ledger item by id.
         endpoint = '/customerledgeritems'
         allowed_methods = ['list', 'create', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class CustomerLedgerItemWithVoucher(VismaModel):
@@ -1690,6 +1759,10 @@ class DeliveryMethod(VismaModel):
         # Get a delivery method.
         endpoint = '/deliverymethods'
         allowed_methods = ['list', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class DeliveryTerm(VismaModel):
@@ -1704,6 +1777,10 @@ class DeliveryTerm(VismaModel):
         # Get single delivery term
         endpoint = '/deliveryterms'
         allowed_methods = ['list', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class Document(VismaModel):
@@ -1767,6 +1844,10 @@ class FiscalYear(VismaModel):
         # GET /v2/fiscalyears/{id} Get a singel fiscal year.
         endpoint = '/fiscalyears'
         allowed_methods = ['list', 'create', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class OpeningBalances(VismaModel):
@@ -1781,6 +1862,10 @@ class OpeningBalances(VismaModel):
         # use the GET /accountbalances instead.
         endpoint = '/fiscalyears/openingbalances'
         allowed_methods = ['list']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class ForeignPaymentCodes(VismaModel):
@@ -1793,6 +1878,10 @@ class ForeignPaymentCodes(VismaModel):
         # GET /v2/foreignpaymentcodes Gets a list of foreign payment codes.
         endpoint = '/foreignpaymentcodes'
         allowed_methods = ['list']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class MessageThread(VismaModel):
@@ -1827,6 +1916,10 @@ class MessageThread(VismaModel):
         # Marks a specific message thread.
         endpoint = '/messagethreads'
         allowed_methods = ['list', 'create', 'get', 'update']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class MessageReceiver(VismaModel):
@@ -1863,8 +1956,12 @@ class Message(VismaModel):
         # Retrives the messages of a message thread.
         # GET /v2/messagethreads/messages
         # Gets all the messages of the threads.
-        endpoint = '//messagethreads/messages'
+        endpoint = '/messagethreads/messages'
         allowed_methods = ['list']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
         # TODO: how to handle this case?
 
 
@@ -1957,6 +2054,10 @@ class Note(VismaModel):
         # PUT /v2/notes/{noteId} Updates a note.
         endpoint = '/notes'
         allowed_methods = ['list', 'create', 'get', 'update']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class Order(VismaModel):
@@ -2125,6 +2226,10 @@ class Order(VismaModel):
         # PUT /v2/orders/{id} Replace content in an order.
         endpoint = '/orders'
         allowed_methods = ['list', 'create', 'get', 'update', 'delete']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class OrderRow(VismaModel):
@@ -2220,6 +2325,10 @@ class PartnerResourceLink(VismaModel):
         # Update a partner resource link
         endpoint = '/partnerresourcelinks'
         allowed_methods = ['list', 'create', 'get', 'update', 'delete']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class Project(VismaModel):
@@ -2260,6 +2369,10 @@ class Project(VismaModel):
         # PUT /v2/projects/{id} Replace content in a project.
         endpoint = '/projects'
         allowed_methods = ['list', 'create', 'get', 'update']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class SalesDocumentAttachment(VismaModel):
@@ -2286,6 +2399,10 @@ class SalesDocumentAttachment(VismaModel):
         # TODO: Maybe subclass so separte between invoicedraft and invoice
         # endpoint = '/'
         # allowed_methods = ['list', 'create', 'get', 'update', 'delete']
+        # envelopes = {
+        #     'list': {'class': PaginatedResponse,
+        #              'data_attr': 'Data'}
+        # }
         pass
 
 
@@ -2388,6 +2505,10 @@ class SupplierInvoiceDraft(VismaModel):
         # Relpace content in a supplier invoice draft.
         endpoint = '/supplierinvoicedrafts'
         allowed_methods = ['list', 'create', 'get', 'update', 'delete']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class SupplierInvoiceDraftRow(VismaModel):
@@ -2529,6 +2650,10 @@ class SupplierInvoice(VismaModel):
         # Post a payment towards a bookkept supplier invoice
         endpoint = '/supplierinvoices'
         allowed_methods = ['list', 'create', 'get', 'update']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
         # TODO: How to handle the payment
 
 
@@ -2744,6 +2869,10 @@ class Supplier(VismaModel):
         # PUT /v2/suppliers/{supplierId} Replace a supplier
         endpoint = '/suppliers'
         allowed_methods = ['list', 'create', 'get', 'update', 'delete']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class Unit(VismaModel):
@@ -2757,6 +2886,10 @@ class Unit(VismaModel):
         # GET /v2/units/{id} Get a singel unit.
         endpoint = '/units'
         allowed_methods = ['list', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class User(VismaModel):
@@ -2772,6 +2905,10 @@ class User(VismaModel):
         # GET /v2/users Get a list of users
         endpoint = '/users'
         allowed_methods = ['list']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class VatReport(VismaModel):
@@ -2818,6 +2955,10 @@ class VatReport(VismaModel):
         # GET /v2/vatreports/{id} Get a vat report item by id.
         endpoint = '/vatreports'
         allowed_methods = ['list', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class DocumentApprovalEvent(VismaModel):
@@ -2850,6 +2991,10 @@ class VatCode(VismaModel):
         # GET /v2/vatcodes/{id} Get a vat code item by it's id
         endpoint = '/vatcodes'
         allowed_methods = ['list', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class RelatedAccounts(VismaModel):
@@ -2927,6 +3072,10 @@ class Voucher(VismaModel):
         # Get a single voucher from a given fiscal year
         endpoint = '/vouchers'
         allowed_methods = ['list', 'create']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
         # TODO: how to handle voucher and fiscal year?
 
 
@@ -3014,6 +3163,10 @@ class WebshopOrder(VismaModel):
         #  The resulted invoice will appear as paid in the sales invoice list.
         endpoint = '/webshoporders'
         allowed_methods = ['list', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
 
 
 class WebshopOrderRow(VismaModel):
@@ -3029,5 +3182,3 @@ class WebshopOrderRow(VismaModel):
     class Meta:
         # No endpoint
         pass
-
-
