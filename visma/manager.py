@@ -39,7 +39,7 @@ class Manager:
         self.verify_method(method)
         in_data = self.api.get(self.endpoint).json()
         logger.debug(f'Received: {in_data}')
-        if self.use_envelope(method):  # THIS IS WRONG!!
+        if self.use_envelope(method):
             objs = self.envelopes[method].load(in_data).data
         else:
             objs = self.schema.load(data=in_data, many=True)
