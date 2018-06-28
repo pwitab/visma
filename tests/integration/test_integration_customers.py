@@ -44,15 +44,15 @@ class TestCRUDCustomer:
         customer = Customer.objects.get(self.customer_id)
         assert customer.name == 'TestCustomer AB'
 
-    # def test_update_customer(self):
-    #    customer = Customer.objects.all()[0]
-    #    customer.name = 'Changed Name TestCustomer AB'
-    #    customer.save()
-    #    customer_id = customer.id
+    def test_update_customer(self):
+        customer = Customer.objects.all()[0]
+        customer.name = 'Changed Name TestCustomer AB'
+        customer.save()
+        customer_id = customer.id
 
-    #    customer_again = Customer.objects.get(customer_id)
-    #    assert customer_again.name == 'Changed Name TestCustomer AB'
-    pass
+        customer_again = Customer.objects.get(customer_id)
+        assert customer_again.name == 'Changed Name TestCustomer AB'
+
 
     def test_delete_customer(self):
         """

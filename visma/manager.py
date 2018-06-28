@@ -2,9 +2,13 @@ import json
 import logging
 
 from visma.api import VismaClientException
+from visma.query import APIQuerySet
+
 logger = logging.getLogger(__name__)
 
+
 class Manager:
+
     def __init__(self):
         self.model = None
         self.name = None
@@ -34,6 +38,37 @@ class Manager:
 
     def use_envelope(self, method):
         return method in self.envelopes.keys()
+
+    def _get_query_set(self, *args, **kwargs):
+        return APIQuerySet(model=self.model, api=self.api, schema=self.schema, *args, **kwargs)
+
+    def new_all(self):
+        return self._get_query_set(envelope=self.envelopes['LIST'])
+
+    def new_filter(self, **kwargs):
+        return self._get_query_set(envelope=self.envelopes['LIST']).filter(**kwargs)
+
+    def new_exclude(self, **kwargs):
+        return self._get_query_set(envelope=self.envelopes['LIST']).exclude(**kwargs)
+
+ #   def new_get(self, **kwargs):
+ #       method = 'GET'
+ #       return self._get_query_set().get(**kwargs)
+
+ #   def new_create(self, **kwargs):
+ #       method = 'CREATE'
+ #       return self._get_query_set().create(**kwargs)
+
+ #   def new_update(self, **kwargs):
+
+        # maybe this is not needed.
+ #       return self._get_query_set().update(**kwargs)
+
+ #   def new_delete(self):
+        # Maybe you would not need to have the delete function on a manager?
+        #
+ #       pass
+
 
     def all(self, method='LIST'):
         self.verify_method(method)

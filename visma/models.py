@@ -186,7 +186,8 @@ class Customer(VismaModel):
         data_key='TermsOfPaymentId')
     terms_of_payment = fields.Nested('TermsOfPaymentSchema',
                                      data_key='TermsOfPayment',
-                                     allow_none=True)
+                                     allow_none=True,
+                                     load_only=True)
     vat_number = fields.String(
         description=('Max length: 20 characters. Format: 2 character country '
                      'code followed by 8-12 numbers.'),

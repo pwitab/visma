@@ -4,6 +4,11 @@ import iso8601
 import requests
 from os import environ
 
+from visma.query import QueryCompiler
+
+
+class VismaQueryCompiler(QueryCompiler):
+    pass
 
 class VismaAPIException(Exception):
     """An error occurred in the Visma API """
@@ -25,6 +30,8 @@ class VismaAPI:
 
     API_URL = 'https://eaccountingapi.vismaonline.com/v2'
     API_URL_TEST = 'https://eaccountingapi-sandbox.test.vismaonline.com/v2'
+
+    QUERY_COMPILER_CLASS = VismaQueryCompiler
 
     def __init__(self, client_id, client_secret,
                  access_token, refresh_token, token_expires, token_path=None,
