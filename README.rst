@@ -74,6 +74,15 @@ Tested
 * TermsOfPayment
 * CustomerInvoiceDraft
 
+Commercial Support and Development
+==================================
+
+The library is developed by Palmlund Wahlgren Innovative Technology AB, a certified Visma Partner.
+
+`Visma Integration Catalog<https://integrationer.vismaspcs.se/appar/python-client-orm/>`_.
+
+We offer software development and integration services to Visma eAccounting (eEkonomi) and can develop you integration or offer support to you team on this library.
+
 Documentation
 =============
 Full documentation can be found at https://visma.readthedocs.io/ .
