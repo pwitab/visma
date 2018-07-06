@@ -53,21 +53,29 @@ class QueryParam:
         self.value = value
 
 
-
-
-class ModelIterable:
+class APIModelIterable:
 
     def __init__(self, queryset):
         self.queryset = queryset
 
     def __iter__(self):
         queryset = self.queryset
-        complier = self.queryset.query.query_compiler
+        compiler = self.queryset.query.query_compiler(queryset.query)
+        compiler.compile()
 
-        #url = complier(endpoint=queryset.model.meta.endpoint,
+        # url = complier(endpoint=queryset.model.meta.endpoint,
         #               params=queryset.query)
+        endpoint = queryset.model.Meta.endpoint
 
-        api_result = queryset.api.get(queryset.model.Meta.endpoint).json()
+        query_params = compiler.get_query_params()
+        print(query_params)
+
+        #api_result = queryset.api.get(endpoint, params=query_params).json()
+
+        # test
+        endpoint = endpoint + '?&$filter=Id%20eq%20%2291ff2390-968b-4ef7-877d-dd7aef616ae4%22'
+
+        api_result = queryset.api.get(endpoint).json()
 
         if queryset.envelope:
 
@@ -90,7 +98,7 @@ class APIQuerySet:
                                        query_compiler=api.QUERY_COMPILER_CLASS)
         self.envelope = envelope
 
-        self._iterable_class = ModelIterable  # TODO: Implemnt pagination over this.
+        self._iterable_class = APIModelIterable  # TODO: Implemnt pagination over this.
         # TODO: How to handle different pagination?
         self._result_cache = None
 
@@ -98,7 +106,6 @@ class APIQuerySet:
 
         self._fetch_all()
         return iter(self._result_cache)
-
 
     def filter(self, **kwargs):
         """
@@ -146,7 +153,8 @@ class APIQuerySet:
         to deepcopy().
         """
         c = self.__class__(model=self.model, query=self.query.chain(),
-                           api=self.api, schema=self.schema, envelope=self.envelope)
+                           api=self.api, schema=self.schema,
+                           envelope=self.envelope)
         return c
 
     def _fetch_all(self):
@@ -183,7 +191,6 @@ class APIQuerySet:
         self._for_write = True
         obj.save(force_insert=True, using=self.db)
         return obj
-
 
     def delete(self):
         """Delete the records in the current QuerySet."""
@@ -248,8 +255,10 @@ class APIQuerySet:
         query._annotations = None
         self._result_cache = None
         return query.get_compiler(self.db).execute_sql(CURSOR)
+
     _update.alters_data = True
     _update.queryset_only = False
+
 
 class APIQuery:
 
@@ -257,13 +266,13 @@ class APIQuery:
         self.model = model
         self.query_compiler = query_compiler or QueryCompiler
         self.filter_by = {}
-        self.filter_by_inverse = {}
+        self.exclude_by = {}
         self.order_by = []
 
     def add_filter(self, negate, **kwargs):
         # TODO: Validate that it is possible to filter.
         if negate:
-            self.filter_by_inverse.update(**kwargs)
+            self.exclude_by.update(**kwargs)
         else:
             self.filter_by.update(**kwargs)
 
@@ -290,14 +299,163 @@ class APIQuery:
         """
         c = self.__class__(model=self.model, query_compiler=self.query_compiler)
         c.filter_by = self.filter_by
-        c.filter_by_inverse = self.filter_by_inverse
+        c.exclude_by = self.exclude_by
         c.order_by = self.order_by
         return c
 
 
+class Param:
+    allowed_value_instances = []
+
+    def __init__(self, key, value, parser):
+        self.key = key
+        self.value = value
+        self.validate()
+        self.parser = parser(key, value)
+
+    def validate(self):
+        if type(self.value) not in self.allowed_value_instances:
+            raise ValueError(f'Value {self.value} of type {self.value.__class__} '
+                             f'and filter operation '
+                             f'{self.__class__} not interoperable')
+
+    def parse(self):
+        return self.parser.parse()
+
+    # TODO: Is parse the right word?
+
+
+class Equals(Param):
+    allowed_value_instances = [int, float, str]
+
+
+class NotEquals(Param):
+    allowed_value_instances = [int, float, str]
+
+
+class GreaterThan(Param):
+    allowed_value_instances = [int, float]
+
+
+class GreaterThanOrEqual(Param):
+    allowed_value_instances = [int, float]
+
+
+class LessThan(Param):
+    allowed_value_instances = [int, float]
+
+
+class LessThanOrEquals(Param):
+    allowed_value_instances = [int, float]
+
+
+# TODO: Add string comparison funtions and date functions.
+
+class ParamParser:
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+
+    def parse(self):
+        raise NotImplementedError(f'The parse function on {self.__class__} '
+                                  f'needs to be overridden')
+
+
+class NoneParamParser(ParamParser):
+
+    def parse(self):
+        return ''
+
 
 class QueryCompiler:
-    pass
+    """
+    The QueryCompiler takes the filtering and excluding and ordering by options
+    and return a query parameter string.
+    """
+
+    # TODO: What is a good standard parser?
+    equals_parser_class = NoneParamParser
+    not_equals_parser_class = NoneParamParser
+    greater_than_parser_class = NoneParamParser
+    greater_or_equal_parser_class = NoneParamParser
+    less_than_parser_class = NoneParamParser
+    less_or_equal_parser_class = NoneParamParser
+
+    filter_param = '$filter'
+    order_param = '$order_by'
+
+    def __init__(self, query):
+        self.query = query
+        self.filters = list()
+        print(self.filter_map)
+
+    @property
+    def filter_map(self):
+        return {
+            'exact': (Equals, self.equals_parser_class),
+            'not': (NotEquals, self.not_equals_parser_class),
+            'gt': (GreaterThan, self.greater_than_parser_class),
+            'gte': (GreaterThanOrEqual, self.greater_or_equal_parser_class),
+            'lt': (LessThan, self.less_than_parser_class),
+            'lte': (LessThanOrEquals, self.less_or_equal_parser_class)
+
+        }
+
+    @property
+    def exclude_map(self):
+        return {
+            'exact': (NotEquals, self.not_equals_parser_class),
+            'not': (Equals, self.equals_parser_class),
+            'gt': (LessThan, self.less_than_parser_class),
+            'gte': (LessThanOrEquals, self.less_or_equal_parser_class),
+            'lt': (GreaterThan, self.greater_than_parser_class),
+            'lte': (GreaterThanOrEqual, self.greater_or_equal_parser_class),
+        }
+
+    def compile(self):
+        self.parse_kwarg(self.query.filter_by, self.filter_map)
+        self.parse_kwarg(self.query.exclude_by, self.exclude_map)
+
+    def get_filter_string(self):
+        filter_params = [_filter.parse() for _filter in self.filters]
+        filter_string = self.join_filter_params(filter_params)
+        return filter_string
 
 
+    def get_query_params(self):
 
+        return {self.filter_param: self.get_filter_string()}
+
+    def join_filter_params(self, param_list):
+        filter_string = ' and '.join(param_list)
+        return filter_string
+
+    def parse_kwarg(self, param_dict, mapping):
+        """
+        Will parse a key, ex name_equal=13 to attr name and function equal
+        value 13.
+        No function defaults to equals.
+        Or size__gte, attr size, function greaterthanorequal
+        :returns: Param
+        """
+        for filtering_attr, value in param_dict.items():
+            filter_class = None
+            key = None
+            parser = None
+            settings = filtering_attr.split('__')
+
+            if len(settings) == 1:
+                #  No __ in expression. Assume exact
+                key = settings[0]
+                filter_class = mapping.get('exact')[0]
+                parser = mapping.get('exact')[1]
+            elif len(settings) == 2:
+                key, klass = settings
+                filter_class = mapping.get(klass)[0]
+                parser = mapping.get(klass)[1]
+
+            if filter_class:
+                print()
+                self.filters.append(filter_class(key=key,
+                                                 value=value,
+                                                 parser=parser))

@@ -4,11 +4,61 @@ import iso8601
 import requests
 from os import environ
 
-from visma.query import QueryCompiler
+from visma.query import QueryCompiler, ParamParser
+
+
+class GreaterThanParamParser(ParamParser):
+
+    def parse(self):
+        return f'{self.key} gt {self.value}'
+
+
+class GreaterOrEqualThanParamParser(ParamParser):
+
+    def parse(self):
+        return f'{self.key} ge {self.value}'
+
+
+class LessThanParamParser(ParamParser):
+
+    def parse(self):
+        return f'{self.key} lt {self.value}'
+
+
+class LessOrEqualThanParamParser(ParamParser):
+
+    def parse(self):
+        return f'{self.key} le {self.value}'
+
+
+class EqualParamParser(ParamParser):
+
+    def parse(self):
+        if isinstance(self.value, str):
+            return f'{self.key} eq "{self.value}"'
+        else:
+            return f'{self.key} eq {self.value}'
+
+
+class NotEqualParamParser(ParamParser):
+
+    def parse(self):
+        if isinstance(self.value, str):
+            return f'{self.key} ne "{self.value}"'
+        else:
+            return f'{self.key} ne {self.value}'
 
 
 class VismaQueryCompiler(QueryCompiler):
-    pass
+    equals_parser_class = EqualParamParser
+    not_equals_parser_class = NotEqualParamParser
+    greater_than_parser_class = GreaterThanParamParser
+    greater_or_equal_parser_class = GreaterOrEqualThanParamParser
+    less_than_parser_class = LessThanParamParser
+    less_or_equal_parser_class = LessOrEqualThanParamParser
+
+    wrap_filter_string_constant = '$filter={filter_string}'
+
 
 class VismaAPIException(Exception):
     """An error occurred in the Visma API """
@@ -16,7 +66,7 @@ class VismaAPIException(Exception):
 
 
 class VismaClientException(Exception):
-    """An error occured in the Visma Client"""
+    """An error occurred in the Visma Client"""
     pass
 
 
@@ -53,10 +103,12 @@ class VismaAPI:
     def get(self, endpoint, params=None, **kwargs):
         url = self._format_url(endpoint)
         print(url)
-        r = requests.get(url, params, headers=self.api_headers, **kwargs)
+        headers = self.api_headers
+
+        r = requests.get(url, params, headers=headers, **kwargs)
         if not r.ok:
             raise VismaAPIException(
-                f'GET :: HTTP:{r.status_code}, {r.content}')
+                f'GET {r.request.url} :: HTTP:{r.status_code}, {r.content}')
         return r
 
     def post(self, endpoint, data, *args, **kwargs):
