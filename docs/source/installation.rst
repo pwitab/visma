@@ -3,6 +3,8 @@
 Installation
 ============
 
+Using the library requires Python 3.6 or higher
+
 .. code-block:: python
 
     pip install visma
