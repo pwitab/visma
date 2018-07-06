@@ -7,6 +7,8 @@ A Python Client/ORM library for integration to Visma e-Accounting, Visma e-Ekono
 Installation
 ============
 
+Using the library requires Python 3.6 or higher
+
 .. code-block:: python
 
     pip install visma
