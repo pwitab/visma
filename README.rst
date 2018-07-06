@@ -83,6 +83,8 @@ The library is developed by Palmlund Wahlgren Innovative Technology AB, a certif
 
 We offer software development and integration services to Visma eAccounting (eEkonomi) and can develop you integration or offer support to you team on this library.
 
+Check us out at `pwit.se <https://pwit.se>`_ or contact us on `info@pwit.se <mailto://info@pwit.se>`_ .
+
 Documentation
 =============
 Full documentation can be found at https://visma.readthedocs.io/ .
