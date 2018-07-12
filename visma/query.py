@@ -62,9 +62,6 @@ class APIModelIterable:
         queryset = self.queryset
         compiler = self.queryset.query.query_compiler(queryset.query)
         compiler.compile()
-
-        # url = complier(endpoint=queryset.model.meta.endpoint,
-        #               params=queryset.query)
         endpoint = queryset.model.Meta.endpoint
 
         query_params = compiler.get_query_params()
@@ -73,10 +70,11 @@ class APIModelIterable:
         #api_result = queryset.api.get(endpoint, params=query_params).json()
 
         # test
-        endpoint = endpoint + '?&$filter=Id%20eq%20%2291ff2390-968b-4ef7-877d-dd7aef616ae4%22'
+        endpoint = endpoint + '?$filter=Id eq "91ff2390-968b-4ef7-877d-dd7aef616ae4"'
 
         api_result = queryset.api.get(endpoint).json()
 
+        # TODO: Handle pagination
         if queryset.envelope:
 
             objs = queryset.envelope.load(api_result).data
@@ -160,104 +158,6 @@ class APIQuerySet:
     def _fetch_all(self):
         if self._result_cache is None:
             self._result_cache = list(self._iterable_class(self))
-
-    def get(self, *args, **kwargs):
-        """
-        Perform the query and return a single object matching the given
-        keyword arguments.
-        """
-        clone = self.filter(*args, **kwargs)
-        if self.query.can_filter() and not self.query.distinct_fields:
-            clone = clone.order_by()
-        num = len(clone)
-        if num == 1:
-            return clone._result_cache[0]
-        if not num:
-            raise self.model.DoesNotExist(
-                "%s matching query does not exist." %
-                self.model._meta.object_name
-            )
-        raise self.model.MultipleObjectsReturned(
-            "get() returned more than one %s -- it returned %s!" %
-            (self.model._meta.object_name, num)
-        )
-
-    def create(self, **kwargs):
-        """
-        Create a new object with the given kwargs, saving it to the database
-        and returning the created object.
-        """
-        obj = self.model(**kwargs)
-        self._for_write = True
-        obj.save(force_insert=True, using=self.db)
-        return obj
-
-    def delete(self):
-        """Delete the records in the current QuerySet."""
-        assert self.query.can_filter(), \
-            "Cannot use 'limit' or 'offset' with delete."
-
-        if self._fields is not None:
-            raise TypeError(
-                "Cannot call delete() after .values() or .values_list()")
-
-        del_query = self._chain()
-
-        # The delete is actually 2 queries - one to find related objects,
-        # and one to delete. Make sure that the discovery of related
-        # objects is performed on the same database as the deletion.
-        del_query._for_write = True
-
-        # Disable non-supported fields.
-        del_query.query.select_for_update = False
-        del_query.query.select_related = False
-        del_query.query.clear_ordering(force_empty=True)
-
-        collector = Collector(using=del_query.db)
-        collector.collect(del_query)
-        deleted, _rows_count = collector.delete()
-
-        # Clear the result cache, in case this QuerySet gets reused.
-        self._result_cache = None
-        return deleted, _rows_count
-
-    def update(self, **kwargs):
-        """
-        Update all elements in the current QuerySet, setting all the given
-        fields to the appropriate values.
-        """
-        assert self.query.can_filter(), \
-            "Cannot update a query once a slice has been taken."
-        self._for_write = True
-        query = self.query.chain(sql.UpdateQuery)
-        query.add_update_values(kwargs)
-        # Clear any annotations so that they won't be present in subqueries.
-        query._annotations = None
-        with transaction.atomic(using=self.db, savepoint=False):
-            rows = query.get_compiler(self.db).execute_sql(CURSOR)
-        self._result_cache = None
-        return rows
-
-    update.alters_data = True
-
-    def _update(self, values):
-        """
-        A version of update() that accepts field objects instead of field names.
-        Used primarily for model saving and not intended for use by general
-        code (it requires too much poking around at model internals to be
-        useful at that level).
-        """
-        assert self.query.can_filter(), \
-            "Cannot update a query once a slice has been taken."
-        query = self.query.chain(sql.UpdateQuery)
-        query.add_update_fields(values)
-        # Clear any annotations so that they won't be present in subqueries.
-        query._annotations = None
-        self._result_cache = None
-        return query.get_compiler(self.db).execute_sql(CURSOR)
-
-    _update.alters_data = True
-    _update.queryset_only = False
 
 
 class APIQuery:
@@ -381,12 +281,15 @@ class QueryCompiler:
     less_than_parser_class = NoneParamParser
     less_or_equal_parser_class = NoneParamParser
 
+    order_by_parser_class = NoneParamParser
+
     filter_param = '$filter'
     order_param = '$order_by'
 
     def __init__(self, query):
         self.query = query
         self.filters = list()
+        self.order = None
         print(self.filter_map)
 
     @property
@@ -415,18 +318,37 @@ class QueryCompiler:
     def compile(self):
         self.parse_kwarg(self.query.filter_by, self.filter_map)
         self.parse_kwarg(self.query.exclude_by, self.exclude_map)
+        self.parse_order(self.query.order_by)
+
+    def parse_order(self, order_list):
+        # get the last called order by
+        order_val = order_list[-1]
+        self.order = self.order_by_parser_class(self.order_param, order_val)
 
     def get_filter_string(self):
         filter_params = [_filter.parse() for _filter in self.filters]
         filter_string = self.join_filter_params(filter_params)
         return filter_string
 
+    def get_order_string(self):
+        return self.order.parse()
 
     def get_query_params(self):
 
-        return {self.filter_param: self.get_filter_string()}
+        query_params = dict()
 
-    def join_filter_params(self, param_list):
+        if self.filters:
+            query_params.update({self.filter_param: self.get_filter_string()})
+
+        if self.query.order_by:
+            # get the last order by reference
+            query_params.update({self.order_param: self.get_order_string()})
+
+        return query_params
+
+    @staticmethod
+    def join_filter_params(param_list):
+        # TODO: This is VISMA API dependant. Should be defined in the VIsmaAPICompiler.
         filter_string = ' and '.join(param_list)
         return filter_string
 

@@ -51,24 +51,8 @@ class Manager:
     def new_exclude(self, **kwargs):
         return self._get_query_set(envelope=self.envelopes['LIST']).exclude(**kwargs)
 
- #   def new_get(self, **kwargs):
- #       method = 'GET'
- #       return self._get_query_set().get(**kwargs)
-
- #   def new_create(self, **kwargs):
- #       method = 'CREATE'
- #       return self._get_query_set().create(**kwargs)
-
- #   def new_update(self, **kwargs):
-
-        # maybe this is not needed.
- #       return self._get_query_set().update(**kwargs)
-
- #   def new_delete(self):
-        # Maybe you would not need to have the delete function on a manager?
-        #
- #       pass
-
+    # TODO: Should get, create update and delete also return querysets?
+    # Then need to implement the handling of them
 
     def all(self, method='LIST'):
         self.verify_method(method)

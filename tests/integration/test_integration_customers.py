@@ -53,7 +53,6 @@ class TestCRUDCustomer:
         customer_again = Customer.objects.get(customer_id)
         assert customer_again.name == 'Changed Name TestCustomer AB'
 
-
     def test_delete_customer(self):
         """
         Delete a customer

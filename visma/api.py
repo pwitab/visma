@@ -49,6 +49,12 @@ class NotEqualParamParser(ParamParser):
             return f'{self.key} ne {self.value}'
 
 
+class OrderByParamParser(ParamParser):
+
+    def parse(self):
+        return self.value
+
+
 class VismaQueryCompiler(QueryCompiler):
     equals_parser_class = EqualParamParser
     not_equals_parser_class = NotEqualParamParser
@@ -56,8 +62,7 @@ class VismaQueryCompiler(QueryCompiler):
     greater_or_equal_parser_class = GreaterOrEqualThanParamParser
     less_than_parser_class = LessThanParamParser
     less_or_equal_parser_class = LessOrEqualThanParamParser
-
-    wrap_filter_string_constant = '$filter={filter_string}'
+    order_by_parser_class = OrderByParamParser
 
 
 class VismaAPIException(Exception):
