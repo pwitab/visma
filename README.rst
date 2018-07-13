@@ -2,7 +2,7 @@
 Visma
 =====
 
-A Python Client/ORM library for integration to Visma e-Accounting, Visma e-Ekonomi
+A Python Client/ORM library for integration to Visma eAccounting, Visma eEkonomi
 
 Installation
 ============
@@ -17,7 +17,7 @@ Using the library requires Python 3.6 or higher
 Access to Visma API
 ===================
 
-After installation you will need to set up access to the Visma E-Accounting API
+After installation you will need to set up access to the Visma eAccounting API
 
 As of now it is not possible to get access by yourself so you will need to contact
 Visma at eaccountingapi@visma.com.
@@ -81,7 +81,7 @@ The library is developed by Palmlund Wahlgren Innovative Technology AB, a certif
 
 `Visma Integration Catalog <https://integrationer.vismaspcs.se/appar/python-client-orm/>`_.
 
-We offer software development and integration services to Visma eAccounting (eEkonomi) and can develop you integration or offer support to you team on this library.
+We offer software development and integration services to Visma eAccounting (eEkonomi) and can develop your integration or offer support to your team on this library.
 
 Check us out at `pwit.se <https://pwit.se>`_ or contact us on `info@pwit.se <mailto://info@pwit.se>`_ .
 
