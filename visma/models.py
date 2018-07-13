@@ -593,9 +593,74 @@ class CustomerInvoiceDraft(VismaModel):
                      'data_attr': 'Data'}
         }
 
-# ########################################################################
-# Models below need moderating, generated from swagger-marshmallow-codegen
-# ########################################################################
+
+class FiscalYear(VismaModel):
+    id = fields.UUID(
+        description='Read-only: Unique Id provided by eAccounting',
+        load_only=True,
+        data_key='Id')
+    start_date = fields.Date(data_key='StartDate', required=True, )
+    end_date = fields.Date(data_key='EndDate', required=True, )
+    is_locked_for_accounting = fields.Boolean(
+        description='Read-only',
+        load_only=True,
+        data_key='IsLockedForAccounting')
+    bookkeeping_method = fields.Integer(
+        description=('Read-only: '
+                     'When posting fiscalyear, previous years bookkeeping'
+                     ' method is chosen. '
+                     '0 = Invoicing, '
+                     '1 = Cash, '
+                     '2 = NoBookkeeping'),
+        load_only=True,
+        validate=[OneOf(choices=[0, 1, 2], labels=[])],
+        data_key='BookkeepingMethod')
+
+    class Meta:
+        # GET /v2/fiscalyears Get a list of fiscal years.
+        # POST /v2/fiscalyears Create a fiscal year.
+        # GET /v2/fiscalyears/{id} Get a singel fiscal year.
+        endpoint = '/fiscalyears'
+        allowed_methods = ['list', 'create', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
+
+
+class VatCode(VismaModel):
+    id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
+                     load_only=True,
+                     data_key='Id')
+    code = fields.String(description='Returns the VAT code', data_key='Code')
+    description = fields.String(data_key='Description')
+    vat_rate = fields.Number(data_key='VatRate')
+    related_accounts = fields.Nested('RelatedAccountsSchema',
+                                     data_key='RelatedAccounts',
+                                     allow_none=True)
+
+    class Meta:
+        # GET /v2/vatcodes Gets a list of all Vat Codes
+        # GET /v2/vatcodes/{id} Get a vat code item by it's id
+        endpoint = '/vatcodes'
+        allowed_methods = ['list', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
+
+    # TODO: remove the need to add schema into nested fields.
+
+
+class RelatedAccounts(VismaModel):
+    account_number1 = fields.Integer(data_key='AccountNumber1', allow_none=True)
+    account_number2 = fields.Integer(data_key='AccountNumber2', allow_none=True)
+    account_number3 = fields.Integer(data_key='AccountNumber3', allow_none=True)
+
+    class Meta:
+        # No endpoint
+        pass
+
 
 class AccountBalance(VismaModel):
     account_number = fields.Integer(
@@ -619,6 +684,9 @@ class AccountBalance(VismaModel):
         pass
 
 
+# TODO: make it possible to have another field as primary key.
+# TODO: in accpunt the number is the primary key.
+
 class Account(VismaModel):
     name = fields.String(
         required=True,
@@ -632,10 +700,12 @@ class Account(VismaModel):
     vat_code_id = fields.UUID(
         description=('The Id of the VAT code that is associated with the '
                      'account'),
+        allow_none=True,
         data_key='VatCodeId')
     vat_code_description = fields.String(
         description=('Read-only. Describes what kind of VAT that is associated '
                      'with the account'),
+        load_only=True,
         data_key='VatCodeDescription')
     fiscal_year_id = fields.UUID(
         required=True,
@@ -644,23 +714,30 @@ class Account(VismaModel):
     reference_code = fields.String(
         description=('Read-only. Returns the reference code on the account. '
                      'This feature is for dutch companies only'),
+        load_only=True,
         data_key='ReferenceCode')
     type = fields.Integer(
         description='Read-only. Returns account type number. Netherlands only',
+        load_only=True,
         data_key='Type')
     type_description = fields.String(
         description='Read-only. Returns account type descripion',
+        load_only=True,
         data_key='TypeDescription')
     modified_utc = fields.DateTime(
         description='Read-only.',
+        load_only=True,
         data_key='ModifiedUtc')
     is_active = fields.Boolean(
         required=True,
+        default=False,
         data_key='IsActive')
-    is_project_allowed = fields.Boolean(data_key='IsProjectAllowed')
-    is_cost_center_allowed = fields.Boolean(data_key='IsCostCenterAllowed')
+    is_project_allowed = fields.Boolean(data_key='IsProjectAllowed',
+                                        default=False)
+    is_cost_center_allowed = fields.Boolean(data_key='IsCostCenterAllowed',
+                                            default=False)
     is_blocked_for_manual_booking = fields.Boolean(
-        data_key='IsBlockedForManualBooking')
+        data_key='IsBlockedForManualBooking', default=False)
 
     class Meta:
         # GET /v2/accounts
@@ -688,7 +765,7 @@ class AccountType(VismaModel):
     type_description = fields.String(data_key='TypeDescription')
 
     class Meta:
-        # GET /v2/accountTypes
+        # GET /v2/accounttypes
         # Gets the default account types.
         # This is applicable on all countries but most relevant for the
         #  Netherlands
@@ -698,6 +775,214 @@ class AccountType(VismaModel):
             'list': {'class': PaginatedResponse,
                      'data_attr': 'Data'}
         }
+
+
+class ArticleAccountCoding(VismaModel):
+    id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
+                     data_key='Id',
+                     load_only=True)
+    name = fields.String(data_key='Name')
+    name_english = fields.String(data_key='NameEnglish')
+    type = fields.String(data_key='Type')
+    vat_rate = fields.String(data_key='VatRate')
+    is_active = fields.Boolean(data_key='IsActive')
+    vat_rate_percent = fields.Number(data_key='VatRatePercent')
+    domestic_sales_subject_to_reversed_construction_vat_account_number = fields.Integer(
+        data_key='DomesticSalesSubjectToReversedConstructionVatAccountNumber',
+        allow_none=True)
+    domestic_sales_subject_to_vat_account_number = fields.Integer(
+        data_key='DomesticSalesSubjectToVatAccountNumber',
+        allow_none=True)
+    domestic_sales_vat_exempt_account_number = fields.Integer(
+        data_key='DomesticSalesVatExemptAccountNumber',
+        allow_none=True)
+    foreign_sales_subject_to_moss_account_number = fields.Integer(
+        data_key='ForeignSalesSubjectToMossAccountNumber',
+        allow_none=True)
+    foreign_sales_subject_to_third_party_sales_account_number = fields.Integer(
+        data_key='ForeignSalesSubjectToThirdPartySalesAccountNumber',
+        allow_none=True)
+    foreign_sales_subject_to_vat_within_eu_account_number = fields.Integer(
+        data_key='ForeignSalesSubjectToVatWithinEuAccountNumber',
+        allow_none=True)
+    foreign_sales_vat_exempt_outside_eu_account_number = fields.Integer(
+        data_key='ForeignSalesVatExemptOutsideEuAccountNumber',
+        allow_none=True)
+    foreign_sales_vat_exempt_within_eu_account_number = fields.Integer(
+        data_key='ForeignSalesVatExemptWithinEuAccountNumber',
+        allow_none=True)
+    domestic_sales_vat_code_exempt_account_number = fields.Integer(
+        data_key='DomesticSalesVatCodeExemptAccountNumber',
+        allow_none=True)
+    changed_utc = fields.DateTime(
+        description='Read-only',
+        data_key='ChangedUtc',
+        load_only=True)
+
+    class Meta:
+        # GET /v2/articleaccountcodings
+        # Get a list of article account codings.
+        # Vat rates are on present UTC time.
+        # Specify date (yyyy-MM-dd) to get for specific date.
+        # GET /v2/articleaccountcodings/{articleAccountCodingId}
+        # Get a single article account coding.
+        #  Vat rates are on present UTC time.
+        # Specify date (yyyy-MM-dd) to get for specific date.
+        endpoint = '/articleaccountcodings'
+        allowed_methods = ['list', 'get']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
+        # TODO: How to handle custom query parameters?
+
+
+class ArticleLabel(VismaModel):
+    id = fields.UUID(
+        description='Read-only: Unique Id provided by eAccounting',
+        data_key='Id',
+        load_only=True)
+    name = fields.String(
+        required=True,
+        description='Max length: 50 characters',
+        validate=[Length(min=0, max=50)],
+        data_key='Name')
+    description = fields.String(
+        description='Max length: 400 characters',
+        validate=[Length(min=0, max=400)],
+        data_key='Description',
+        default='')
+
+    class Meta:
+        # GET /v2/articlelabels
+        # Gets articlelabels.
+        # POST /v2/articlelabels
+        # Create an articlelabel.
+        # DELETE /v2/articlelabels/{articleLabelId}
+        # Deletes an aticlelabel.
+        # GET /v2/articlelabels/{articleLabelId}
+        # Gets an articlelabel by id.
+        # PUT /v2/articlelabels/{articleLabelId}
+        # Replace content of an articlelabel.
+        endpoint = '/articlelabels'
+        allowed_methods = ['list', 'create', 'get', 'update', 'delete']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
+
+
+# TODO: Document that read only fields should have load_only=True and Boolean should always have a default value
+
+
+class Article(VismaModel):
+    id = fields.UUID(
+        description='Read-only: Unique Id provided by eAccounting',
+        data_key='Id',
+        load_only=True)
+    is_active = fields.Boolean(
+        required=True,
+        data_key='IsActive',
+        default=True)
+    number = fields.String(
+        required=True,
+        description='Max length: 40 characters',
+        validate=[Length(min=0, max=40)],
+        data_key='Number')
+    name = fields.String(
+        required=True,
+        description='Max length: 50 characters',
+        validate=[Length(min=0, max=50)],
+        data_key='Name')
+    name_english = fields.String(
+        description='Max length: 50 characters',
+        validate=[Length(min=0, max=50)],
+        data_key='NameEnglish',
+        default='')
+    net_price = fields.Number(
+        description='Format: Max 2 decimals',
+        validate=[Range(min=0, max=10000000),
+                  # Regexp(regex=re.compile('[-]?\\d+(.\\d{1,2})?'))
+                  ],
+        data_key='NetPrice', default=0)
+    gross_price = fields.Number(
+        description='Format: Max 2 decimals',
+        validate=[
+            Range(min=0, max=10000000),
+            # Regexp(regex=re.compile('[-]?\\d+(.\\d{1,2})?'))
+        ],
+        data_key='GrossPrice', default=0)
+    coding_id = fields.UUID(
+        required=True,
+        description='Source: Get from /v1/articleaccountcodings',
+        data_key='CodingId')
+    coding_name = fields.String(description='Read-only', data_key='CodingName',
+                                load_only=True)
+    unit_id = fields.UUID(
+        required=True,
+        description='Source: Get from /v1/units',
+        data_key='UnitId')
+    unit_name = fields.String(
+        description='Read-only: Returns the unit name entered from UnitId',
+        data_key='UnitName', load_only=True)
+    unit_abbreviation = fields.String(
+        description=('Read-only: Returns the unit abbreviation entered from '
+                     'UnitId'),
+        data_key='UnitAbbreviation', load_only=True)
+    stock_balance = fields.Number(
+        description=('Default: 0. Purpose: Sets the stock balance for this '
+                     'article'),
+        # validate=[Regexp(regex=re.compile('[-]?\\d+(.\\d{1,2})?'))],
+        data_key='StockBalance', default=0)
+    stock_balance_manually_changed_utc = fields.DateTime(
+        description='Read-only: Set when the stock balance is changed manually',
+        data_key='StockBalanceManuallyChangedUtc', load_only=True, allow_none=True)
+    stock_balance_reserved = fields.Number(
+        description=('Purpose: Returns the reserved stock balance for this '
+                     'article'),
+        data_key='StockBalanceReserved', load_only=True)
+    stock_balance_available = fields.Number(
+        description=('Purpose: Returns the available stock balance for this '
+                     'article'),
+        data_key='StockBalanceAvailable', load_only=True)
+    changed_utc = fields.DateTime(
+        description=('Purpose: Returns the last date and time from when a '
+                     'change was made on the article'),
+        data_key='ChangedUtc', load_only=True)
+    # TODO: what is house_work_type. Not documented?
+    house_work_type = fields.Integer(data_key='HouseWorkType', allow_none=True)
+    purchase_price = fields.Number(data_key='PurchasePrice', default=0)
+    purchase_price_manually_changed_utc = fields.DateTime(
+        description=('Read-only: '
+                     'Set when the purchase price is changed manually'),
+        data_key='PurchasePriceManuallyChangedUtc', load_only=True, allow_none=True)
+    send_to_webshop = fields.Boolean(
+        description=('Purpose: If true, will send article to VismaWebShop '
+                     '(If company has the integration). Default: True'),
+        data_key='SendToWebshop', default=False)
+    article_labels = fields.List(fields.Nested('ArticleLabelSchema'),
+                                 data_key='ArticleLabels', default=list())
+
+    class Meta:
+        # GET /v2/articles
+        # Gets articles.
+        # POST /v2/articles
+        # Create a single article.
+        # GET /v2/articles/{articleId}
+        # Gets an article by id.
+        # PUT /v2/articles/{articleId}
+        # Replace the data in an article.
+        endpoint = '/articles'
+        allowed_methods = ['list', 'get', 'create', 'update']
+        envelopes = {
+            'list': {'class': PaginatedResponse,
+                     'data_attr': 'Data'}
+        }
+
+
+# ########################################################################
+# Models below need moderating, generated from swagger-marshmallow-codegen
+# ########################################################################
 
 
 class AllocationPeriod(VismaModel):
@@ -731,7 +1016,7 @@ class AllocationPeriod(VismaModel):
     class Meta:
         # GET /v2/allocationperiods
         # Get allocation periods.
-        # POST /v2/allocationperiods
+        # POST /v2/allocationperiods  uses AllocationPlan
         # Add allocation periods for voucher or supplier invoice.
         # GET /v2/allocationperiods/{allocationPeriodId}
         # Get single allocation period.
@@ -741,6 +1026,37 @@ class AllocationPeriod(VismaModel):
             'list': {'class': PaginatedResponse,
                      'data_attr': 'Data'}
         }
+
+        # TODO: How to handle different schemas on post and get?
+
+
+class AllocationPlan(VismaModel):
+    supplier_invoice_id = fields.UUID(data_key='SupplierInvoiceId')
+    supplier_invoice_row = fields.Integer(data_key='SupplierInvoiceRow')
+    voucher_id = fields.UUID(data_key='VoucherId')
+    voucher_row = fields.Integer(data_key='VoucherRow')
+    bookkeeping_start_date = fields.DateTime(required=True,
+                                             data_key='BookkeepingStartDate')
+    amount_to_allocate = fields.Number(
+        required=True,
+        validate=[
+            Range(min=0, max=1000000000),
+            # Regexp(regex=re.compile('[-]?\\d+(.\\d{1,2})?'))
+        ],
+        data_key='AmountToAllocate')
+    quantity_to_allocate = fields.Number(
+        # validate=[Regexp(regex=re.compile('[-]?\\d+(.\\d{1,2})?'))],
+        data_key='QuantityToAllocate')
+    weight_to_allocate = fields.Number(
+        # validate=[Regexp(regex=re.compile('[-]?\\d+(.\\d{1,2})?'))],
+        data_key='WeightToAllocate')
+    allocation_account_number = fields.Integer(
+        required=True,
+        validate=[Range(min=0, max=9999)],
+        data_key='AllocationAccountNumber')
+    number_of_allocation_periods = fields.Integer(
+        required=True,
+        data_key='NumberOfAllocationPeriods')
 
 
 class AllocationPeriodRow(VismaModel):
@@ -760,7 +1076,37 @@ class AllocationPeriodRow(VismaModel):
         pass
 
 
-class Approval(VismaModel):
+# TODO: Maybe split into 2 subclasses to separate endpoints for vat and invoices and useage.
+# TODO: How to make abstract classes?
+# class Approval(VismaModel):
+#     document_approval_status = fields.Integer(
+#         required=True,
+#         description='1 = Approved, 2 = Rejected, 3 = ReadyForApproval',
+#         validate=[OneOf(choices=[0, 1, 2, 3], labels=[])],
+#         data_key='DocumentApprovalStatus')
+#     rejection_message = fields.String(
+#         description=('Purpose: The message sent to users when rejecting a '
+#                      'document. '
+#                      'Empty if DocumentApprovalStatus is not 2 = Rejected.\r\n'
+#                      'Max length: 200 characters'),
+#         validate=[Length(min=0, max=200)],
+#         data_key='RejectionMessage')
+#     rejection_message_receivers = fields.List(
+#         fields.UUID(),
+#         description=('Purpose: The recipients of the rejection message. '
+#                      'Empty if DocumentApprovalStatus is not 2 = Rejected. '
+#                      'List of user ids.'),
+#         data_key='RejectionMessageReceivers')
+#
+#     class Meta:
+#         # PUT /v2/approval/vatreport/{id}
+#         # Update the approval status of a vat report
+#         # PUT /v2/approval/supplierinvoice/{id}
+#         # Update the approval status of a invoice draft
+#         pass
+
+
+class VatApproval(VismaModel):
     document_approval_status = fields.Integer(
         required=True,
         description='1 = Approved, 2 = Rejected, 3 = ReadyForApproval',
@@ -781,195 +1127,39 @@ class Approval(VismaModel):
         data_key='RejectionMessageReceivers')
 
     class Meta:
-        # TODO: Maybe split into 2 subclasses to separate endpoints for vat and invoices and useage.
-        # TODO: How to make abstract classes?
         # PUT /v2/approval/vatreport/{id}
         # Update the approval status of a vat report
         # PUT /v2/approval/supplierinvoice/{id}
         # Update the approval status of a invoice draft
-        pass
+        endpoint = '/approvals/vatreport'
+        allowed_methods = ['update']
 
 
-class ArticleAccountCoding(VismaModel):
-    id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
-                     data_key='Id')
-    name = fields.String(data_key='Name')
-    name_english = fields.String(data_key='NameEnglish')
-    type = fields.String(data_key='Type')
-    vat_rate = fields.String(data_key='VatRate')
-    is_active = fields.Boolean(data_key='IsActive')
-    vat_rate_percent = fields.Number(data_key='VatRatePercent')
-    domestic_sales_subject_to_reversed_construction_vat_account_number = fields.Integer(
-        data_key='DomesticSalesSubjectToReversedConstructionVatAccountNumber')
-    domestic_sales_subject_to_vat_account_number = fields.Integer(
-        data_key='DomesticSalesSubjectToVatAccountNumber')
-    domestic_sales_vat_exempt_account_number = fields.Integer(
-        data_key='DomesticSalesVatExemptAccountNumber')
-    foreign_sales_subject_to_moss_account_number = fields.Integer(
-        data_key='ForeignSalesSubjectToMossAccountNumber')
-    foreign_sales_subject_to_third_party_sales_account_number = fields.Integer(
-        data_key='ForeignSalesSubjectToThirdPartySalesAccountNumber')
-    foreign_sales_subject_to_vat_within_eu_account_number = fields.Integer(
-        data_key='ForeignSalesSubjectToVatWithinEuAccountNumber')
-    foreign_sales_vat_exempt_outside_eu_account_number = fields.Integer(
-        data_key='ForeignSalesVatExemptOutsideEuAccountNumber')
-    foreign_sales_vat_exempt_within_eu_account_number = fields.Integer(
-        data_key='ForeignSalesVatExemptWithinEuAccountNumber')
-    domestic_sales_vat_code_exempt_account_number = fields.Integer(
-        data_key='DomesticSalesVatCodeExemptAccountNumber')
-    changed_utc = fields.DateTime(
-        description='Read-only',
-        data_key='ChangedUtc')
+class SupplierInvoiceApproval(VismaModel):
+    document_approval_status = fields.Integer(
+        required=True,
+        description='1 = Approved, 2 = Rejected, 3 = ReadyForApproval',
+        validate=[OneOf(choices=[0, 1, 2, 3], labels=[])],
+        data_key='DocumentApprovalStatus')
+    rejection_message = fields.String(
+        description=('Purpose: The message sent to users when rejecting a '
+                     'document. '
+                     'Empty if DocumentApprovalStatus is not 2 = Rejected.\r\n'
+                     'Max length: 200 characters'),
+        validate=[Length(min=0, max=200)],
+        data_key='RejectionMessage')
+    rejection_message_receivers = fields.List(
+        fields.UUID(),
+        description=('Purpose: The recipients of the rejection message. '
+                     'Empty if DocumentApprovalStatus is not 2 = Rejected. '
+                     'List of user ids.'),
+        data_key='RejectionMessageReceivers')
 
     class Meta:
-        # GET /v2/articleaccountcodings
-        # Get a list of article account codings.
-        # Vat rates are on present UTC time.
-        # Specify date (yyyy-MM-dd) to get for specific date.
-        # GET /v2/articleaccountcodings/{articleAccountCodingId}
-        # Get a single article account coding.
-        #  Vat rates are on present UTC time.
-        # Specify date (yyyy-MM-dd) to get for specific date.
-        endpoint = '/articleaccountcodings'
-        allowed_methods = ['list', 'get']
-        envelopes = {
-            'list': {'class': PaginatedResponse,
-                     'data_attr': 'Data'}
-        }
-        # TODO: How to handle custom query parameters?
-
-
-class ArticleLabel(VismaModel):
-    id = fields.UUID(
-        description='Read-only: Unique Id provided by eAccounting',
-        data_key='Id')
-    name = fields.String(
-        required=True,
-        description='Max length: 50 characters',
-        validate=[Length(min=0, max=50)],
-        data_key='Name')
-    description = fields.String(
-        description='Max length: 400 characters',
-        validate=[Length(min=0, max=400)],
-        data_key='Description')
-
-    class Meta:
-        # GET /v2/articlelabels
-        # Gets articlelabels.
-        # POST /v2/articlelabels
-        # Create an articlelabel.
-        # DELETE /v2/articlelabels/{articleLabelId}
-        # Deletes an aticlelabel.
-        # GET /v2/articlelabels/{articleLabelId}
-        # Gets an articlelabel by id.
-        # PUT /v2/articlelabels/{articleLabelId}
-        # Replace content of an articlelabel.
-        endpoint = '/articlelabels'
-        allowed_methods = ['list', 'create', 'get', 'update', 'delete']
-        envelopes = {
-            'list': {'class': PaginatedResponse,
-                     'data_attr': 'Data'}
-        }
-
-
-class Article(VismaModel):
-    id = fields.UUID(
-        description='Read-only: Unique Id provided by eAccounting',
-        data_key='Id')
-    is_active = fields.Boolean(
-        required=True,
-        data_key='IsActive')
-    number = fields.String(
-        required=True,
-        description='Max length: 40 characters',
-        validate=[Length(min=0, max=40)],
-        data_key='Number')
-    name = fields.String(
-        required=True,
-        description='Max length: 50 characters',
-        validate=[Length(min=0, max=50)],
-        data_key='Name')
-    name_english = fields.String(
-        description='Max length: 50 characters',
-        validate=[Length(min=0, max=50)],
-        data_key='NameEnglish')
-    net_price = fields.Number(
-        description='Format: Max 2 decimals',
-        validate=[Range(min=0, max=10000000),
-                  # Regexp(regex=re.compile('[-]?\\d+(.\\d{1,2})?'))
-                  ],
-        data_key='NetPrice')
-    gross_price = fields.Number(
-        description='Format: Max 2 decimals',
-        validate=[
-            Range(min=0, max=10000000),
-            # Regexp(regex=re.compile('[-]?\\d+(.\\d{1,2})?'))
-        ],
-        data_key='GrossPrice')
-    coding_id = fields.UUID(
-        required=True,
-        description='Source: Get from /v1/articleaccountcodings',
-        data_key='CodingId')
-    coding_name = fields.String(description='Read-only', data_key='CodingName')
-    unit_id = fields.UUID(
-        required=True,
-        description='Source: Get from /v1/units',
-        data_key='UnitId')
-    unit_name = fields.String(
-        description='Read-only: Returns the unit name entered from UnitId',
-        data_key='UnitName')
-    unit_abbreviation = fields.String(
-        description=('Read-only: Returns the unit abbreviation entered from '
-                     'UnitId'),
-        data_key='UnitAbbreviation')
-    stock_balance = fields.Number(
-        description=('Default: 0. Purpose: Sets the stock balance for this '
-                     'article'),
-        # validate=[Regexp(regex=re.compile('[-]?\\d+(.\\d{1,2})?'))],
-        data_key='StockBalance')
-    stock_balance_manually_changed_utc = fields.DateTime(
-        description='Read-only: Set when the stock balance is changed manually',
-        data_key='StockBalanceManuallyChangedUtc')
-    stock_balance_reserved = fields.Number(
-        description=('Purpose: Returns the reserved stock balance for this '
-                     'article'),
-        data_key='StockBalanceReserved')
-    stock_balance_available = fields.Number(
-        description=('Purpose: Returns the available stock balance for this '
-                     'article'),
-        data_key='StockBalanceAvailable')
-    changed_utc = fields.DateTime(
-        description=('Purpose: Returns the last date and time from when a '
-                     'change was made on the article'),
-        data_key='ChangedUtc')
-    house_work_type = fields.Integer(data_key='HouseWorkType')
-    purchase_price = fields.Number(data_key='PurchasePrice')
-    purchase_price_manually_changed_utc = fields.DateTime(
-        description=('Read-only: '
-                     'Set when the purchase price is changed manually'),
-        data_key='PurchasePriceManuallyChangedUtc')
-    send_to_webshop = fields.Boolean(
-        description=('Purpose: If true, will send article to VismaWebShop '
-                     '(If company has the integration). Default: True'),
-        data_key='SendToWebshop')
-    article_labels = fields.List(fields.Nested('ArticleLabelSchema'),
-                                 data_key='ArticleLabels')
-
-    class Meta:
-        # GET /v2/articles
-        # Gets articles.
-        # POST /v2/articles
-        # Create a single article.
-        # GET /v2/articles/{articleId}
-        # Gets an article by id.
-        # PUT /v2/articles/{articleId}
-        # Replace the data in an article.
-        endpoint = '/articles'
-        allowed_methods = ['list', 'get', 'create', 'update']
-        envelopes = {
-            'list': {'class': PaginatedResponse,
-                     'data_attr': 'Data'}
-        }
+        # PUT /v2/approval/supplierinvoice/{id}
+        # Update the approval status of a invoice draft
+        endpoint = '/approvals/supplierinvoice'
+        allowed_methods = ['update']
 
 
 class AttachmentLink(VismaModel):
@@ -998,7 +1188,6 @@ class AttachmentLink(VismaModel):
         # Delete the link to an attachment.
         endpoint = '/attachmentlinks'
         allowed_methods = ['create', 'delete']
-
 
 
 # TODO: How to handle when different schemas are used for Post and get?
@@ -1284,7 +1473,6 @@ class CostCenterItem(VismaModel):
         # Replace the data in an CostCenterItem.
         endpoint = '/costcenteritems'
         allowed_methods = ['create', 'get', 'update']
-
 
 
 class CostCenter(VismaModel):
@@ -1811,37 +1999,6 @@ class Document(VismaModel):
         # GET /v2/documents/{id} Get a vat report pdf by document id.
         endpoint = '/documents'
         allowed_methods = ['get']
-
-
-class FiscalYear(VismaModel):
-    id = fields.UUID(
-        description='Read-only: Unique Id provided by eAccounting',
-        data_key='Id')
-    start_date = fields.DateTime(data_key='StartDate')
-    end_date = fields.DateTime(data_key='EndDate')
-    is_locked_for_accounting = fields.Boolean(
-        description='Read-only',
-        data_key='IsLockedForAccounting')
-    bookkeeping_method = fields.Integer(
-        description=('Read-only: '
-                     'When posting fiscalyear, previous years bookkeeping'
-                     ' method is chosen. '
-                     '0 = Invoicing, '
-                     '1 = Cash, '
-                     '2 = NoBookkeeping'),
-        validate=[OneOf(choices=[0, 1, 2], labels=[])],
-        data_key='BookkeepingMethod')
-
-    class Meta:
-        # GET /v2/fiscalyears Get a list of fiscal years.
-        # POST /v2/fiscalyears Create a fiscal year.
-        # GET /v2/fiscalyears/{id} Get a singel fiscal year.
-        endpoint = '/fiscalyears'
-        allowed_methods = ['list', 'create', 'get']
-        envelopes = {
-            'list': {'class': PaginatedResponse,
-                     'data_attr': 'Data'}
-        }
 
 
 class OpeningBalances(VismaModel):
@@ -2971,36 +3128,6 @@ class DocumentApprovalEvent(VismaModel):
         pass
 
 
-class VatCode(VismaModel):
-    id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
-                     data_key='Id')
-    code = fields.String(description='Returns the VAT code', data_key='Code')
-    description = fields.String(data_key='Description')
-    vat_rate = fields.Number(data_key='VatRate')
-    related_accounts = fields.Nested('RelatedAccounts',
-                                     data_key='RelatedAccounts')
-
-    class Meta:
-        # GET /v2/vatcodes Gets a list of all Vat Codes
-        # GET /v2/vatcodes/{id} Get a vat code item by it's id
-        endpoint = '/vatcodes'
-        allowed_methods = ['list', 'get']
-        envelopes = {
-            'list': {'class': PaginatedResponse,
-                     'data_attr': 'Data'}
-        }
-
-
-class RelatedAccounts(VismaModel):
-    account_number1 = fields.Integer(data_key='AccountNumber1')
-    account_number2 = fields.Integer(data_key='AccountNumber2')
-    account_number3 = fields.Integer(data_key='AccountNumber3')
-
-    class Meta:
-        # No endpoint
-        pass
-
-
 class Voucher(VismaModel):
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      data_key='Id')
@@ -3176,3 +3303,5 @@ class WebshopOrderRow(VismaModel):
     class Meta:
         # No endpoint
         pass
+
+# TODO: Some fields are references to other models primary keys. It would be interesting to have functionallity to fetch the model on evaluation of the attribute and return a whole model instance instead of just the key.
