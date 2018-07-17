@@ -70,16 +70,18 @@ class APIModelIterable:
 
         query_params = compiler.get_query_params()
 
-        api_result = queryset.api.get(endpoint, params=query_params).json()
+        api_result = queryset.api.get(endpoint, params=query_params)
+        print(api_result.headers)
+        result_data = api_result.json()
 
         # TODO: Handle pagination. Give control via iterator function as in
         # django
         if queryset.envelope:
 
-            objs = queryset.envelope.load(api_result).data
+            objs = queryset.envelope.load(result_data).data
 
         else:
-            objs = queryset.schema.load(data=api_result, many=True)
+            objs = queryset.schema.load(data=result_data, many=True)
 
         for obj in objs:
             yield obj
@@ -362,17 +364,18 @@ class QueryCompiler:
         }
 
     def compile(self):
-        self.parse_kwarg(self.query.filter_by, self.filter_map)
-        self.parse_kwarg(self.query.exclude_by, self.exclude_map)
-        self.parse_order(self.query.order_by)
+        if self.query.filter_by:
+            self.parse_kwarg(self.query.filter_by, self.filter_map)
+        if self.query.exclude_by:
+            self.parse_kwarg(self.query.exclude_by, self.exclude_map)
+        if self.query.order_by:
+            self.parse_order(self.query.order_by)
 
     def parse_order(self, order_list):
         # get the last called order by
-        if order_list:
-            order_val = order_list[-1]
-            self.order = OrderBy(order_val, '',  self.query.model, self.order_by_parser_class)
-        else:
-            self.order = OrderBy('', '', self.query.model, NoneFilterParser)
+
+        order_val = order_list[-1]
+        self.order = OrderBy(order_val, '',  self.query.model, self.order_by_parser_class)
 
     def get_filter_string(self):
         filter_params = [_filter.parse() for _filter in self.filters]
