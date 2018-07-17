@@ -42,27 +42,17 @@ class Manager:
     def _get_query_set(self, *args, **kwargs):
         return APIQuerySet(model=self.model, api=self.api, schema=self.schema, *args, **kwargs)
 
-    def new_all(self):
+    def all(self):
         return self._get_query_set(envelope=self.envelopes['LIST'])
 
-    def new_filter(self, **kwargs):
+    def filter(self, **kwargs):
         return self._get_query_set(envelope=self.envelopes['LIST']).filter(**kwargs)
 
-    def new_exclude(self, **kwargs):
+    def exclude(self, **kwargs):
         return self._get_query_set(envelope=self.envelopes['LIST']).exclude(**kwargs)
 
     # TODO: Should get, create update and delete also return querysets?
     # Then need to implement the handling of them
-
-    def all(self, method='LIST'):
-        self.verify_method(method)
-        in_data = self.api.get(self.endpoint).json()
-        logger.debug(f'Received: {in_data}')
-        if self.use_envelope(method):
-            objs = self.envelopes[method].load(in_data).data
-        else:
-            objs = self.schema.load(data=in_data, many=True)
-        return objs
 
     def get(self, pk, method='GET'):
         self.verify_method(method)

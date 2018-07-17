@@ -1,5 +1,7 @@
 import json
 
+from marshmallow import fields
+
 """
 THe aim of the query module is to enable adding query parameters to our API Calls
 In the Visma API they use OData parameters to enable extensive filtering.
@@ -45,6 +47,8 @@ same as:
 .filter(name__exact='Henrik').filter(year__lt=2017).order_by('name')
 """
 
+REPR_OUTPUT_SIZE = 10
+
 
 class QueryParam:
 
@@ -65,16 +69,11 @@ class APIModelIterable:
         endpoint = queryset.model.Meta.endpoint
 
         query_params = compiler.get_query_params()
-        print(query_params)
 
-        #api_result = queryset.api.get(endpoint, params=query_params).json()
+        api_result = queryset.api.get(endpoint, params=query_params).json()
 
-        # test
-        endpoint = endpoint + '?$filter=Id eq "91ff2390-968b-4ef7-877d-dd7aef616ae4"'
-
-        api_result = queryset.api.get(endpoint).json()
-
-        # TODO: Handle pagination
+        # TODO: Handle pagination. Give control via iterator function as in
+        # django
         if queryset.envelope:
 
             objs = queryset.envelope.load(api_result).data
@@ -100,10 +99,43 @@ class APIQuerySet:
         # TODO: How to handle different pagination?
         self._result_cache = None
 
-    def __iter__(self):
+    def __repr__(self):
+        data = list(self[:REPR_OUTPUT_SIZE + 1])
+        if len(data) > REPR_OUTPUT_SIZE:
+            data[-1] = "...(remaining elements truncated)..."
+        return '<%s %r>' % (self.__class__.__name__, data)
 
+    def __iter__(self):
         self._fetch_all()
         return iter(self._result_cache)
+
+    def __len__(self):
+        self._fetch_all()
+        return len(self._result_cache)
+
+    def __bool__(self):
+        self._fetch_all()
+        return bool(self._result_cache)
+
+    def __getitem__(self, k):
+        """Retrieve an item or slice from the set of results."""
+        if not isinstance(k, (int, slice)):
+            raise TypeError
+        assert ((not isinstance(k, slice) and (k >= 0)) or
+                (isinstance(k, slice) and (k.start is None or k.start >= 0) and
+                 (k.stop is None or k.stop >= 0))), \
+            "Negative indexing is not supported."
+
+        if self._result_cache is not None:
+            return self._result_cache[k]
+
+        if isinstance(k, slice):
+
+            return list(self)[k.start:k.stop]
+
+        self._fetch_all()
+
+        return self._result_cache[k]
 
     def filter(self, **kwargs):
         """
@@ -204,20 +236,30 @@ class APIQuery:
         return c
 
 
-class Param:
-    allowed_value_instances = []
+class Filter:
+    allowed_input_value_types = []
 
-    def __init__(self, key, value, parser):
+    def __init__(self, key, value, model, parser):
         self.key = key
         self.value = value
+        self.model = model
+        self.value_field = self.model._schema_items.get(key)
         self.validate()
-        self.parser = parser(key, value)
+        self.parser = parser(key, value, self.value_field)
 
     def validate(self):
-        if type(self.value) not in self.allowed_value_instances:
-            raise ValueError(f'Value {self.value} of type {self.value.__class__} '
-                             f'and filter operation '
-                             f'{self.__class__} not interoperable')
+        # Check if the key exists on the model
+        if not hasattr(self.model, self.key):
+            raise ValueError(
+                f'Model {self.model.__name__} does not have the attribute '
+                f'{self.key} so it can be used for filtering')
+
+        # Check if they type of value is allowed.
+        if type(self.value) not in self.allowed_input_value_types:
+            raise ValueError(
+                f'Value {self.value} of type {self.value.__class__} '
+                f'and filter operation '
+                f'{self.__class__} not interoperable')
 
     def parse(self):
         return self.parser.parse()
@@ -225,43 +267,48 @@ class Param:
     # TODO: Is parse the right word?
 
 
-class Equals(Param):
-    allowed_value_instances = [int, float, str]
+class Equals(Filter):
+    allowed_input_value_types = [int, float, str]
 
 
-class NotEquals(Param):
-    allowed_value_instances = [int, float, str]
+class NotEquals(Filter):
+    allowed_input_value_types = [int, float, str]
 
 
-class GreaterThan(Param):
-    allowed_value_instances = [int, float]
+class GreaterThan(Filter):
+    allowed_input_value_types = [int, float]
 
 
-class GreaterThanOrEqual(Param):
-    allowed_value_instances = [int, float]
+class GreaterThanOrEqual(Filter):
+    allowed_input_value_types = [int, float]
 
 
-class LessThan(Param):
-    allowed_value_instances = [int, float]
+class LessThan(Filter):
+    allowed_input_value_types = [int, float]
 
 
-class LessThanOrEquals(Param):
-    allowed_value_instances = [int, float]
+class LessThanOrEquals(Filter):
+    allowed_input_value_types = [int, float]
+
+
+class OrderBy(Filter):
+    allowed_input_value_types = [str]
 
 
 # TODO: Add string comparison funtions and date functions.
 
-class ParamParser:
-    def __init__(self, key, value):
+class FilterParser:
+    def __init__(self, key, value, field):
         self.key = key
         self.value = value
+        self.field = field
 
     def parse(self):
         raise NotImplementedError(f'The parse function on {self.__class__} '
                                   f'needs to be overridden')
 
 
-class NoneParamParser(ParamParser):
+class NoneFilterParser(FilterParser):
 
     def parse(self):
         return ''
@@ -274,14 +321,14 @@ class QueryCompiler:
     """
 
     # TODO: What is a good standard parser?
-    equals_parser_class = NoneParamParser
-    not_equals_parser_class = NoneParamParser
-    greater_than_parser_class = NoneParamParser
-    greater_or_equal_parser_class = NoneParamParser
-    less_than_parser_class = NoneParamParser
-    less_or_equal_parser_class = NoneParamParser
+    equals_parser_class = NoneFilterParser
+    not_equals_parser_class = NoneFilterParser
+    greater_than_parser_class = NoneFilterParser
+    greater_or_equal_parser_class = NoneFilterParser
+    less_than_parser_class = NoneFilterParser
+    less_or_equal_parser_class = NoneFilterParser
 
-    order_by_parser_class = NoneParamParser
+    order_by_parser_class = NoneFilterParser
 
     filter_param = '$filter'
     order_param = '$order_by'
@@ -290,7 +337,6 @@ class QueryCompiler:
         self.query = query
         self.filters = list()
         self.order = None
-        print(self.filter_map)
 
     @property
     def filter_map(self):
@@ -322,8 +368,11 @@ class QueryCompiler:
 
     def parse_order(self, order_list):
         # get the last called order by
-        order_val = order_list[-1]
-        self.order = self.order_by_parser_class(self.order_param, order_val)
+        if order_list:
+            order_val = order_list[-1]
+            self.order = OrderBy(order_val, '',  self.query.model, self.order_by_parser_class)
+        else:
+            self.order = OrderBy('', '', self.query.model, NoneFilterParser)
 
     def get_filter_string(self):
         filter_params = [_filter.parse() for _filter in self.filters]
@@ -377,7 +426,7 @@ class QueryCompiler:
                 parser = mapping.get(klass)[1]
 
             if filter_class:
-                print()
                 self.filters.append(filter_class(key=key,
                                                  value=value,
+                                                 model=self.query.model,
                                                  parser=parser))

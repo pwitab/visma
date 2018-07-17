@@ -4,65 +4,71 @@ import iso8601
 import requests
 from os import environ
 
-from visma.query import QueryCompiler, ParamParser
+from marshmallow import fields
+
+from visma.query import QueryCompiler, FilterParser
 
 
-class GreaterThanParamParser(ParamParser):
-
-    def parse(self):
-        return f'{self.key} gt {self.value}'
-
-
-class GreaterOrEqualThanParamParser(ParamParser):
+class GreaterThanFilterParser(FilterParser):
 
     def parse(self):
-        return f'{self.key} ge {self.value}'
+        return f'{self.field.data_key} gt {self.value}'
 
 
-class LessThanParamParser(ParamParser):
-
-    def parse(self):
-        return f'{self.key} lt {self.value}'
-
-
-class LessOrEqualThanParamParser(ParamParser):
+class GreaterOrEqualThanFilterParser(FilterParser):
 
     def parse(self):
-        return f'{self.key} le {self.value}'
+        return f'{self.field.data_key} ge {self.value}'
 
 
-class EqualParamParser(ParamParser):
+class LessThanFilterParser(FilterParser):
+
+    def parse(self):
+        return f'{self.field.data_key} lt {self.value}'
+
+
+class LessOrEqualThanFilterParser(FilterParser):
+
+    def parse(self):
+        return f'{self.field.data_key} le {self.value}'
+
+
+class EqualFilterParser(FilterParser):
+
+    def parse(self):
+        if isinstance(self.field, fields.UUID):
+            return f'{self.field.data_key} eq {self.value}'
+
+        elif isinstance(self.field, fields.String):
+            return f'{self.field.data_key} eq \'{self.value}\''
+
+        else:
+            return f'{self.field.data_key} eq {self.value}'
+
+
+class NotEqualFilterParser(FilterParser):
 
     def parse(self):
         if isinstance(self.value, str):
-            return f'{self.key} eq "{self.value}"'
+            return f'{self.field.data_key} ne {self.value}'
         else:
-            return f'{self.key} eq {self.value}'
+            return f'{self.field.data_key} ne {self.value}'
 
 
-class NotEqualParamParser(ParamParser):
+class OrderByFilterParser(FilterParser):
 
     def parse(self):
-        if isinstance(self.value, str):
-            return f'{self.key} ne "{self.value}"'
-        else:
-            return f'{self.key} ne {self.value}'
-
-
-class OrderByParamParser(ParamParser):
-
-    def parse(self):
-        return self.value
+        return self.field.data_key
 
 
 class VismaQueryCompiler(QueryCompiler):
-    equals_parser_class = EqualParamParser
-    not_equals_parser_class = NotEqualParamParser
-    greater_than_parser_class = GreaterThanParamParser
-    greater_or_equal_parser_class = GreaterOrEqualThanParamParser
-    less_than_parser_class = LessThanParamParser
-    less_or_equal_parser_class = LessOrEqualThanParamParser
-    order_by_parser_class = OrderByParamParser
+    equals_parser_class = EqualFilterParser
+    not_equals_parser_class = NotEqualFilterParser
+    greater_than_parser_class = GreaterThanFilterParser
+    greater_or_equal_parser_class = GreaterOrEqualThanFilterParser
+    less_than_parser_class = LessThanFilterParser
+    less_or_equal_parser_class = LessOrEqualThanFilterParser
+    order_by_parser_class = OrderByFilterParser
 
 
 class VismaAPIException(Exception):
@@ -107,7 +113,6 @@ class VismaAPI:
 
     def get(self, endpoint, params=None, **kwargs):
         url = self._format_url(endpoint)
-        print(url)
         headers = self.api_headers
 
         r = requests.get(url, params, headers=headers, **kwargs)
