@@ -58,6 +58,9 @@ class QueryParam:
 
 
 class APIModelIterable:
+    PAGINATION_PAGE_SIZE = 50
+
+    # TODO: Env variable?
 
     def __init__(self, queryset):
         self.queryset = queryset
@@ -69,22 +72,41 @@ class APIModelIterable:
         endpoint = queryset.model.Meta.endpoint
 
         query_params = compiler.get_query_params()
+        paginate = True
 
-        api_result = queryset.api.get(endpoint, params=query_params)
-        print(api_result.headers)
-        result_data = api_result.json()
+        current_page = 1
+        total_number_of_pages = None
+        while paginate:
 
-        # TODO: Handle pagination. Give control via iterator function as in
-        # django
-        if queryset.envelope:
+            query_params.update({'$pagesize': self.PAGINATION_PAGE_SIZE,
+                                 '$page': current_page})
 
-            objs = queryset.envelope.load(result_data).data
+            api_result = queryset.api.get(endpoint, params=query_params)
 
-        else:
-            objs = queryset.schema.load(data=result_data, many=True)
+            result_data = api_result.json()
 
-        for obj in objs:
-            yield obj
+            # TODO: Handle pagination. Give control via iterator function as in
+            # django
+
+            if queryset.envelope:
+
+                result = queryset.envelope.load(result_data)
+                meta = result.meta
+                total_number_of_pages = meta.total_number_of_pages
+
+                objs = result.data
+
+            else:
+                objs = queryset.schema.load(data=result_data, many=True)
+
+            for obj in objs:
+                yield obj
+
+            if current_page == total_number_of_pages:
+                paginate = False
+
+            current_page += 1
+
 
 
 class APIQuerySet:
@@ -132,7 +154,6 @@ class APIQuerySet:
             return self._result_cache[k]
 
         if isinstance(k, slice):
-
             return list(self)[k.start:k.stop]
 
         self._fetch_all()
@@ -375,7 +396,8 @@ class QueryCompiler:
         # get the last called order by
 
         order_val = order_list[-1]
-        self.order = OrderBy(order_val, '',  self.query.model, self.order_by_parser_class)
+        self.order = OrderBy(order_val, '', self.query.model,
+                             self.order_by_parser_class)
 
     def get_filter_string(self):
         filter_params = [_filter.parse() for _filter in self.filters]

@@ -6,6 +6,7 @@ from visma.base import VismaModel, VismaSchema
 
 class PaginatedResponse(VismaModel):
     meta = fields.Nested('PaginationMetadataSchema', data_key='Meta')
+    test = fields.String()
 
 
 class PaginationMetadata(VismaModel):
