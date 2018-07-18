@@ -6,6 +6,7 @@ from visma.base import VismaModel, VismaSchema
 
 class PaginatedResponse(VismaModel):
     meta = fields.Nested('PaginationMetadataSchema', data_key='Meta')
+    test = fields.String()
 
 
 class PaginationMetadata(VismaModel):
@@ -186,7 +187,8 @@ class Customer(VismaModel):
         data_key='TermsOfPaymentId')
     terms_of_payment = fields.Nested('TermsOfPaymentSchema',
                                      data_key='TermsOfPayment',
-                                     allow_none=True)
+                                     allow_none=True,
+                                     load_only=True)
     vat_number = fields.String(
         description=('Max length: 20 characters. Format: 2 character country '
                      'code followed by 8-12 numbers.'),

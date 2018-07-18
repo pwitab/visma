@@ -4,6 +4,72 @@ import iso8601
 import requests
 from os import environ
 
+from marshmallow import fields
+
+from visma.query import QueryCompiler, FilterParser
+
+
+class GreaterThanFilterParser(FilterParser):
+
+    def parse(self):
+        return f'{self.field.data_key} gt {self.value}'
+
+
+class GreaterOrEqualThanFilterParser(FilterParser):
+
+    def parse(self):
+        return f'{self.field.data_key} ge {self.value}'
+
+
+class LessThanFilterParser(FilterParser):
+
+    def parse(self):
+        return f'{self.field.data_key} lt {self.value}'
+
+
+class LessOrEqualThanFilterParser(FilterParser):
+
+    def parse(self):
+        return f'{self.field.data_key} le {self.value}'
+
+
+class EqualFilterParser(FilterParser):
+
+    def parse(self):
+        if isinstance(self.field, fields.UUID):
+            return f'{self.field.data_key} eq {self.value}'
+
+        elif isinstance(self.field, fields.String):
+            return f'{self.field.data_key} eq \'{self.value}\''
+
+        else:
+            return f'{self.field.data_key} eq {self.value}'
+
+
+class NotEqualFilterParser(FilterParser):
+
+    def parse(self):
+        if isinstance(self.value, str):
+            return f'{self.field.data_key} ne {self.value}'
+        else:
+            return f'{self.field.data_key} ne {self.value}'
+
+
+class OrderByFilterParser(FilterParser):
+
+    def parse(self):
+        return self.field.data_key
+
+
+class VismaQueryCompiler(QueryCompiler):
+    equals_parser_class = EqualFilterParser
+    not_equals_parser_class = NotEqualFilterParser
+    greater_than_parser_class = GreaterThanFilterParser
+    greater_or_equal_parser_class = GreaterOrEqualThanFilterParser
+    less_than_parser_class = LessThanFilterParser
+    less_or_equal_parser_class = LessOrEqualThanFilterParser
+    order_by_parser_class = OrderByFilterParser
+
 
 class VismaAPIException(Exception):
     """An error occurred in the Visma API """
@@ -11,7 +77,7 @@ class VismaAPIException(Exception):
 
 
 class VismaClientException(Exception):
-    """An error occured in the Visma Client"""
+    """An error occurred in the Visma Client"""
     pass
 
 
@@ -25,6 +91,8 @@ class VismaAPI:
 
     API_URL = 'https://eaccountingapi.vismaonline.com/v2'
     API_URL_TEST = 'https://eaccountingapi-sandbox.test.vismaonline.com/v2'
+
+    QUERY_COMPILER_CLASS = VismaQueryCompiler
 
     def __init__(self, client_id, client_secret,
                  access_token, refresh_token, token_expires, token_path=None,
@@ -45,11 +113,12 @@ class VismaAPI:
 
     def get(self, endpoint, params=None, **kwargs):
         url = self._format_url(endpoint)
-        print(url)
-        r = requests.get(url, params, headers=self.api_headers, **kwargs)
+        headers = self.api_headers
+
+        r = requests.get(url, params, headers=headers, **kwargs)
         if not r.ok:
             raise VismaAPIException(
-                f'GET :: HTTP:{r.status_code}, {r.content}')
+                f'GET {r.request.url} :: HTTP:{r.status_code}, {r.content}')
         return r
 
     def post(self, endpoint, data, *args, **kwargs):
