@@ -73,7 +73,7 @@ class VismaModelMeta(type):
                                        allowed_methods]
 
             api_klass_path = os.environ.get('VISMA_API_CLASS',
-                                            default='visma.api.VismaAPI')
+                                            default='visma.api.NoAPI')
             api_klass = import_string(api_klass_path)
             manager.api = api_klass.load()
 

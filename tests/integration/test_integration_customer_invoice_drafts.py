@@ -65,12 +65,13 @@ class TestCRUDCustomerInvoiceDraft:
 
         invoice = CustomerInvoiceDraft.objects.get(customer_invoice_draft_id)
 
-        invoice.invoice_customer_name = 'Updated Name'
+        new_name = 'Updated Name'
+        invoice.invoice_customer_name = new_name
         invoice.save()
 
         updated_invoice = CustomerInvoiceDraft.objects.get(customer_invoice_draft_id)
 
-        assert updated_invoice.invoice_customer_name == 'Updated Name'
+        assert updated_invoice.invoice_customer_name == new_name
 
     def test_delete_customer_invoice_draft(self, customer):
         # dont use the fixture since that deletes automatically.

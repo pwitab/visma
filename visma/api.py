@@ -226,18 +226,23 @@ class VismaAPI:
 
     @classmethod
     def load(cls):
-        env = cls.get_api_settings_from_env()
         """
-                Load tokens from json file
-                """
+        Load tokens from json file
+        """
+
+        env = cls.get_api_settings_from_env()
+
         access_token = None
         refresh_token = None
         token_expires = None
-        with open(env['token_path']) as token_file:
-            tokens = json.load(token_file)
-            access_token = tokens['access_token']
-            refresh_token = tokens['refresh_token']
-            token_expires = iso8601.parse_date(tokens['expires'])
+
+        if env['token_path'] is not None:
+
+            with open(env['token_path']) as token_file:
+                tokens = json.load(token_file)
+                access_token = tokens['access_token']
+                refresh_token = tokens['refresh_token']
+                token_expires = iso8601.parse_date(tokens['expires'])
 
         return cls(env['client_id'], env['client_secret'],
                    access_token=access_token,
@@ -245,7 +250,6 @@ class VismaAPI:
                    token_expires=token_expires,
                    token_path=env['token_path'],
                    test=env['test'])
-
 
     @staticmethod
     def get_api_settings_from_env():
@@ -256,8 +260,14 @@ class VismaAPI:
         if environ.get('VISMA_API_ENV') == 'test':
             settings['test'] = True
 
-        if environ.get('VISMA_API_ENV') == 'production':
+        else:
             settings['test'] = False
 
         return settings
+
+class NoAPI:
+
+    @classmethod
+    def load(cls):
+        return cls
 

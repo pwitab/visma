@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from marshmallow import fields
 
@@ -61,6 +62,7 @@ class APIModelIterable:
     PAGINATION_PAGE_SIZE = 50
 
     # TODO: Env variable?
+    # TODO: We neeed a way to limit the response size. We dont want to iterate over all pages all the time.
 
     def __init__(self, queryset):
         self.queryset = queryset
@@ -96,11 +98,15 @@ class APIModelIterable:
 
                 objs = result.data
 
-            else:
-                objs = queryset.schema.load(data=result_data, many=True)
+                for obj in objs:
+                    yield obj
 
-            for obj in objs:
+            else:
+                paginate = False
+                obj = queryset.schema.load(data=result_data)
                 yield obj
+
+
 
             if current_page == total_number_of_pages:
                 paginate = False
@@ -124,7 +130,7 @@ class APIQuerySet:
         self._result_cache = None
 
     def __repr__(self):
-        data = list(self[:REPR_OUTPUT_SIZE + 1])
+        data = list(self._result_cache[:REPR_OUTPUT_SIZE + 1])
         if len(data) > REPR_OUTPUT_SIZE:
             data[-1] = "...(remaining elements truncated)..."
         return '<%s %r>' % (self.__class__.__name__, data)
@@ -189,7 +195,10 @@ class APIQuerySet:
 
     def first(self):
         """Return the first object of a query or None if no match is found."""
-        pass
+        if len(self) == 0:
+            return None
+        else:
+            return self[0]
 
     def _chain(self, **kwargs):
         """
@@ -291,11 +300,11 @@ class Filter:
 
 
 class Equals(Filter):
-    allowed_input_value_types = [int, float, str]
+    allowed_input_value_types = [int, float, str, uuid.UUID]
 
 
 class NotEquals(Filter):
-    allowed_input_value_types = [int, float, str]
+    allowed_input_value_types = [int, float, str, uuid.UUID]
 
 
 class GreaterThan(Filter):
@@ -315,7 +324,7 @@ class LessThanOrEquals(Filter):
 
 
 class OrderBy(Filter):
-    allowed_input_value_types = [str]
+    allowed_input_value_types = [str, uuid.UUID]
 
 
 # TODO: Add string comparison funtions and date functions.

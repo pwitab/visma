@@ -40,16 +40,24 @@ class Manager:
         return method in self.envelopes.keys()
 
     def _get_query_set(self, *args, **kwargs):
-        return APIQuerySet(model=self.model, api=self.api, schema=self.schema, *args, **kwargs)
+        return APIQuerySet(model=self.model, api=self.api, schema=self.schema,
+                           *args, **kwargs)
 
     def all(self):
-        return self._get_query_set(envelope=self.envelopes['LIST'])
+        envelopes = self.envelopes.get('LIST', None)
+
+        if envelopes:
+            return self._get_query_set(envelope=envelopes)
+        else:
+            return self._get_query_set()
 
     def filter(self, **kwargs):
-        return self._get_query_set(envelope=self.envelopes['LIST']).filter(**kwargs)
+        return self._get_query_set(envelope=self.envelopes['LIST']).filter(
+            **kwargs)
 
     def exclude(self, **kwargs):
-        return self._get_query_set(envelope=self.envelopes['LIST']).exclude(**kwargs)
+        return self._get_query_set(envelope=self.envelopes['LIST']).exclude(
+            **kwargs)
 
     # TODO: Should get, create update and delete also return querysets?
     # Then need to implement the handling of them
@@ -90,5 +98,3 @@ class Manager:
         logger.debug(f'Deleting object at: {_endpoint}')
         result = self.api.delete(_endpoint)
         return result
-
-

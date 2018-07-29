@@ -7,7 +7,7 @@ class TestCRUDAccount:
 
     @pytest.fixture()
     def fiscal_year_id(self):
-        fiscal_year = FiscalYear.objects.all()[-1]  # last one
+        fiscal_year = FiscalYear.objects.all()[0]  # last one
 
         yield fiscal_year.id
 
