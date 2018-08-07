@@ -40,7 +40,7 @@ class Customer(VismaModel):
     Models the customer object in Visma e-Accounting.
 
     endpoint
-        '/customers'
+        /customers
     allowed_methods
         ['list', 'get', 'create', 'update', 'dlete']
     envelopes
@@ -321,12 +321,11 @@ class Customer(VismaModel):
 
 
 class TermsOfPayment(VismaModel):
-
     """
     Describes a term of payment that can be set on customers.
 
     endpoint
-        '/termsofpayments'
+        /termsofpayments
     allowed_methods
         ['list', 'get']
     envelopes
@@ -376,6 +375,104 @@ class TermsOfPayment(VismaModel):
 
 
 class CustomerInvoiceDraft(VismaModel):
+    """
+    Represents a Customer Invoice Draft.
+
+    endpoint
+        /customerinvoicedrafts
+    allowed_methods
+        ['list', 'get', 'create', 'update', 'delete']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+    scope
+        * ea:sales
+        * ea:sales_readonly
+        * ea.local:mobile_user
+
+
+    :argument uuid.UUID id: ``read-only``  Unique Id provided by eAccounting
+    :argument uuid.UUID customer_id: ``required`` Reference to :class:`Customer`
+    :argument datetime.datetime created_utc: ``read-only`` Creation time. Is
+        automatically set
+    :argument bool is_credit_invoice: Indicates if the invoice is a credit
+        invoice. ``default=False``
+    :argument int rot_reduced_invoicing_type: Indicates the invoicing type in
+        respect to ROT and RUT. (Sweden) 0 = Normal, 1 = ROT, 2 = RUT.
+        ``default=0``
+    :argument str rot_reduced_invoicing_property_name: ``Unknown use``
+        ``Max length: 40 characters``
+    :argument str rot_reduced_invoicing_org_number: ``Unknown use``
+        ``Max length: 11 characters``
+    :argument number rot_reduced_invoicing_amount: ``Unknown use``
+        ``Format: 2 decimals``, ``default=0.00``
+    :argument bool rot_reduced_invoicing_automatic_distribution: ``Unknown use``
+        ``default=False``
+    :argument int rot_property_type: ``Unknown use``
+    :argument number house_work_other_costs: ``Unknown use``
+    :argument list(CustomerInvoiceDraftRow) rows:  List of
+        :class:`CustomerInvoiceDraftRow` with the details of the invoice.
+        ``default=list()``
+    :argument list(SalesDocumentRotRutReductionPerson) persons: List of
+        :class:`SalesDocumentRotRutReductionPerson` when using ROT and RUT.
+        ``Unknown use`` ``default=list()``
+    :argument str your_reference: Customers reference.
+        ``Max length: 100 characters``
+    :argument str our_reference: Companys reference.
+        ``Max length: 100 characters``
+    :argument str invoice_customer_name: Customer name on invoice.
+        ``default=''`` ``Max length: 50 characters``
+    :argument  str invoice_address1: Invoice address row 1
+        ``Max length: 50 characters``
+    :argument str invoice_address2: Invoice address row 2
+        ``Max length: 50 characters``
+    :argument str invoice_postal_code: = Invoice postal code.
+        ``Max length: 10 characters``
+    :argument str invoice_city: Invoice city. ``Max length: 50 characters``
+    :argument str invoice_country_code:  Invoice country code.
+        ``Max length: 2 characters``, ``default=SE``
+    :argument str invoice_currency_code: ``read-only`` Invoice currency code
+    :argument str delivery_customer_name:  ``Max length: 50 characters``
+    :argument str delivery_address1: ``Max length: 50 characters``
+    :argument str delivery_address2: ``Max length: 50 characters``
+    :argument str delivery_postal_code: ``Max length: 10 characters``
+    :argument str delivery_city: ``Max length: 50 characters``
+    :argument str delivery_country_code: ``Max length: 2 characters``
+    :argument str delivery_method_name: ``Max length: 50 characters``
+    :argument str delivery_term_name: ``Max length: 50 characters``
+    :argument str delivery_method_code: ``Max length: 20 characters``
+    :argument str delivery_term_code: ``Max length: 50 characters``
+    :argument bool eu_third_party: Indicates if the invoice is subject to rules
+        about EU third pary invoicing. ``default=False``
+    :argument bool customer_is_private_person: ``required`` Indicates if the
+        reciever of the invoice is a private person. ``default=False``
+    :argument bool reverse_charge_on_construction_services: ``read-only``
+        ``Unknown use``  Need investigation.
+    :argument list(uuid.UUID) sales_document_attachments: ``read-only`` List of
+        references to attached documents.
+    :argument datetime.datetime invoice_date: invoice date
+    :argument datetime.datetime delivery_date: delivery date
+    :argument number total_amount: ``read-only``  Calculated by eAccounting API
+    :argument number total_vat_amount:  ``read-only`` Calculated by eAccounting
+        API
+    :argument number total_roundings: ``read-only`` Calculated by eAccounting
+        API
+    :argument number total_amount_base_currency:  ``read-only`` Calculated by
+        eAccounting API
+    :argument number total_vat_amount_base_currency: ``read-only`` Calculated by
+        eAccounting API
+    :argument str customer_number: ``read-only`` ``Max length: 16 characters``
+    :argument bool includes_vat: ``read-only`` If true the unit prices on rows
+        include VAT. The value is set upon creation depending whether "Show
+        prices excl. VAT for private individuals" in company' settings is marked
+        or not'
+
+    .. todo::
+
+        Contact Visma API Team about rules for ROT and RUT so it can be
+        documented
+
+    """
+
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      load_only=True, data_key='Id')
     customer_id = fields.UUID(required=True,
@@ -493,7 +590,8 @@ class CustomerInvoiceDraft(VismaModel):
     eu_third_party = fields.Boolean(required=True, data_key='EuThirdParty',
                                     default=False)
     customer_is_private_person = fields.Boolean(required=True,
-                                                data_key='CustomerIsPrivatePerson')
+                                                data_key='CustomerIsPrivatePerson',
+                                                default=False)
     reverse_charge_on_construction_services = fields.Boolean(
         description='Read-only', data_key='ReverseChargeOnConstructionServices',
         load_only=True)
@@ -545,6 +643,54 @@ class CustomerInvoiceDraft(VismaModel):
 
 
 class CustomerInvoiceDraftRow(VismaModel):
+    """
+    Represents a row on a :class:`CustomerInvoiceDraft`
+
+    :argument int line_number: ``required`` Used to sort the rows. Nothing
+        prevenst to have the same line numer on several rows. But the order of these
+        will be random. ``Max=1000``
+    :argument uuid.UUID article_id: Reference to :class:`Article` Required if is
+        text_row=False,
+    :argument str article_number: If not filled eAccouting will get the article
+        number from the speicfied article ID.
+    :argument bool is_text_row: Specifies if row i a text row or article row.
+        ``default=False``
+    :argument str text: Article name or Text if is_text_row=True. ``Max length:
+        2000``
+    :argument number unit_price: Use if you want to set a custom price on the
+        article. If not set eAccounting will use the price from the article registry
+        in creation. ``Format: 2 decimals``
+    :argument number discount_percentage: Discount on the incoice row. Ex. 10%
+        discount = 0.1 ``default=0.00``
+    :argument number quantity: The amount of specified article.
+        ``Format: 2 decimals``
+    :argument int work_cost_type: Probarbly has with ROT and RUT to do.
+        ``Unknown usage`` ``default=0``
+    :argument bool is_work_cost: Probarbly has with ROT and RUT to do.
+        ``Unknown usage`` ``default=False``
+    :argument number  work_hours: Probarbly has with ROT and RUT to do.
+        `Unknown usage``
+    :argument number material_costs: Probarbly has with ROT and RUT to do.
+        ``Unknown usage``
+    :argument bool reversed_construction_services_vat_free: Probarbly has with
+        ROT and RUT to do. ``Unknown usage`` ``default=False``
+    :argument uuid.UUID cost_center_item_id1: reference to
+        :class:`CostCenterItem` on invoice row
+    :argument uuid.UUID cost_center_item_id2: reference to
+        :class:`CostCenterItem` on invoice row
+    :argument uuid.UUID cost_center_item_id3: reference to
+        :class:`CostCenterItem` on invoice row
+    :argument str unit_abbreviation: unit abbreviation of the article
+    :argument str vat_rate_id: ``read-only`` source from
+        :class:`ArticleAccountCoding`
+    :argument str unit_name: Name of article unit
+    :argument uuid.UUID project_id: reference to :class:`Project`
+
+    .. todo::
+
+        Contact Visma API Team about how to handle ROT and RUT.
+
+    """
     line_number = fields.Integer(required=True,
                                  validate=[Range(min=0, max=1000)],
                                  data_key='LineNumber')
@@ -603,6 +749,30 @@ class CustomerInvoiceDraftRow(VismaModel):
 
 
 class FiscalYear(VismaModel):
+    """
+    Represents a fiscal year.
+
+    Fiscal years must be created in sequence. For example if you only have 2018
+    you can't create 2020 until you have created 2019. If you want to create
+    earlier fiscal year they aslo have to be adjacent to an existing fiscal year
+
+    endpoint
+        /fiscalyears
+    allowed_methods
+        ['list', 'create', 'get']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    :argument uuid.UUID id: ``read-only`` Unique Id provided by eAccounting
+    :argument datetime.date start_date: ``required``
+    :argument datetime.date end_date: ``required``
+    :argument bool is_locked_for_accounting: ``read-only`` Indicates if it is
+        still possible bookkeep on the year.
+    :argument int bookkeeping_method: ``read-only`` 0 = Invoicing, 1 = Cash,
+        2 = NoBookkeeping. When posting fiscalyear, previous years bookkeeping
+        method is chosen. '
+
+    """
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      load_only=True, data_key='Id')
     start_date = fields.Date(data_key='StartDate', required=True, )
@@ -629,6 +799,30 @@ class FiscalYear(VismaModel):
 
 
 class VatCode(VismaModel):
+    """
+    Represents the diffent VAT Codes used in eAccounting.
+
+    endpoint
+        /vatcodes
+    allowed_methods
+        ['list', 'get']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+
+    :argument uuid.UUID id: ``read-only`` Unique Id provided by eAccounting
+    :argument str code: VAT code
+    :argument str description: Description
+    :argument number vat_rate: VAT Rate (in percentage??)
+    :argument RelatedAccounts related_accounts: A :class:`RelatedAccounts` object that holds the accounts related to this VAT code.
+
+
+    .. todo::
+
+        How is vat rate represented? 0.25 or 25 for 25% VAT?
+
+    """
+
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      load_only=True, data_key='Id')
     code = fields.String(description='Returns the VAT code', data_key='Code')
@@ -649,6 +843,15 @@ class VatCode(VismaModel):
 
 
 class RelatedAccounts(VismaModel):
+    """
+    Holds collected information about related accounts.
+
+    :argument int account_number1: Account Number 1
+    :argument int account_number2: Account Number 2
+    :argument int account_number3: Account Number 3
+
+    """
+
     account_number1 = fields.Integer(data_key='AccountNumber1', allow_none=True)
     account_number2 = fields.Integer(data_key='AccountNumber2', allow_none=True)
     account_number3 = fields.Integer(data_key='AccountNumber3', allow_none=True)
@@ -658,27 +861,48 @@ class RelatedAccounts(VismaModel):
         pass
 
 
-class AccountBalance(VismaModel):
-    account_number = fields.Integer(description='Read-only. The account number',
-                                    data_key='AccountNumber', load_only=True)
-    account_name = fields.String(
-        description='Read-only. The name of the account',
-        data_key='AccountName', load_only=True)
-    balance = fields.Number(description='Read-only. The account balance',
-                            data_key='Balance', load_only=True)
-
-    class Meta:
-        # GET /v2/accountbalances/{date}
-        # GET /v2/accountbalances/{accountNumber}/{date}
-
-        # TODO: how to handle endpoints that doesn't use a pk?
-        pass
-
-
-# TODO: make it possible to have another field as primary key.
-# TODO: in accpunt the number is the primary key.
-
 class Account(VismaModel):
+    """ Represents a Bookkeeping Account in eAccounting
+
+    endpoint
+        /accounts
+    allowed_methods
+        ['list', 'create']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    .. todo::
+
+        There is more special cases endpoint for this objects that is not
+        handled yet by the framework.
+
+
+    :argument str name: The name of the account ``Max length: 100 characters``
+    :argument str number: ``required`` The account number
+    :argument uuid.UUID vat_code_id: = Reference to the :class:`VatCode` that is
+        associated with the account
+    :argument str vat_code_description: ``read-only`` Describes the
+        :class:`VatCode` that is associated with the account
+    :argument uuid.UUID fiscal_year_id: ``required`` Reference to the
+        :class:`FiscalYear` that the account belongs to.
+    :argument str reference_code: ``read-only`` The reference code on the
+        account. ``Dutch companies only``
+    :argument int type: ``read-only`` The account type number.
+        ``Dutch companies only``
+    :argument str type_description:  ``read-only`` The account type descripion.
+        ``Dutch companies only``
+    :argument datetime.datetime modified_utc: ``read_only`` Modifed date.
+    :argument bool is_active: ``required`` Indicates if the account is active.
+        ``default=False``
+    :argument bool is_project_allowed: Indicates if the account can be used for
+        project bookkeeping. ``default=False``
+    :argument bool is_cost_center_allowed: Indicates if the account can be used
+        for cost center bookkeeping. ``default=False``
+    :argument bool is_blocked_for_manual_booking: Indicates if the account can
+        be used for manual verification registering.
+
+    """
+
     name = fields.String(required=True,
                          description='Max length: 100 characters. The name of the account',
                          validate=[Length(min=0, max=100)], data_key='Name')
@@ -729,11 +953,27 @@ class Account(VismaModel):
         # Replaces a account in a given fiscalyear
         endpoint = '/accounts'
         allowed_methods = ['list', 'create']
-        envelopes = {'list': {'class': PaginatedResponse,
-                              'data_attr': 'Data'}}  # TODO: how to handle the special cases?
+        envelopes = {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+        # TODO: how to handle the special cases?
 
 
 class AccountType(VismaModel):
+    """
+    Default Account Types. This is applicable on all countries but most
+    relevant for the Netherlands
+
+    endpoint
+        /accounttypes
+    allowed_methods
+        ['list']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    :argument int type: Account type number.
+    :argument str type_description: Account type description
+
+    """
     type = fields.Integer(data_key='Type')
     type_description = fields.String(data_key='TypeDescription')
 
@@ -748,6 +988,49 @@ class AccountType(VismaModel):
 
 
 class ArticleAccountCoding(VismaModel):
+    """
+    Represents article account coding
+
+
+    endpoint
+        /articleaccountcodings
+    allowed_methods
+        ['list', 'get']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    :argument uuid.UUID id: ``read-only`` Unique Id provided by eAccounting
+    :argument string name:  Name
+    :argument string name_english: English Name
+    :argument string type: Type
+    :argument string vat_rate: VAT rate
+    :argument bool is_active: Indicates if the Article account coding is active.
+    :argument number vat_rate_percent: VAT rate in percentage.
+    :argument int domestic_sales_subject_to_reversed_construction_vat_account_number: Account
+        number for domestic sales subject to reversed construction VAT
+    :argument int domestic_sales_subject_to_vat_account_number: Account number
+        for domestic sales subject to VAT.
+    :argument int domestic_sales_vat_exempt_account_number: Account number for
+        domestic sales that are exempt from VAT.
+    :argument int foreign_sales_subject_to_moss_account_number: Account number
+        for foreign sales subject to MOSS.
+    :argument int foreign_sales_subject_to_third_party_sales_account_number: Account
+        number for foreign sales subject to third parrt sales rules.
+    :argument int foreign_sales_subject_to_vat_within_eu_account_number: Account
+        number for foreign sales subject to VAT within EU.
+    :argument int foreign_sales_vat_exempt_outside_eu_account_number: Account
+        number for foreign sales that are exempt VAT outside of EU.
+    :argument int foreign_sales_vat_exempt_within_eu_account_number: Account
+        number for foreign sales that are exempt VAT within EU.
+    :argument int domestic_sales_vat_code_exempt_account_number: Account number
+        for domestic sales exempt a VAT Code.
+    :argument datetime.datetime changed_utc: ``read-only`` Last Changed Time
+
+    .. todo::
+
+        It is not yet supported to filter on date for the account.
+
+    """
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      data_key='Id', load_only=True)
     name = fields.String(data_key='Name')
@@ -791,11 +1074,29 @@ class ArticleAccountCoding(VismaModel):
         # Specify date (yyyy-MM-dd) to get for specific date.
         endpoint = '/articleaccountcodings'
         allowed_methods = ['list', 'get']
-        envelopes = {'list': {'class': PaginatedResponse,
-                              'data_attr': 'Data'}}  # TODO: How to handle custom query parameters?
+        envelopes = {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+        # TODO: How to handle custom query parameters?
 
 
 class ArticleLabel(VismaModel):
+    """
+    Represents an Article Label in eAccounting.
+
+    endpoint
+        /articlelabels
+    allowed_methods
+        ['list', 'create', 'get', 'update', 'delete']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    :argument uuid.UUID id: ``read-only`` Unique Id provided by eAccounting
+    :argument str name: Article label name ``Max length: 50 characters``
+    :argument str description: Article label description
+        ``Max length: 400 characters``
+
+    """
+
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      data_key='Id', load_only=True)
     name = fields.String(required=True, description='Max length: 50 characters',
@@ -824,6 +1125,48 @@ class ArticleLabel(VismaModel):
 
 
 class Article(VismaModel):
+    """
+    Represents an Article in eAccounting.
+
+
+    endpoint
+        /articles
+    allowed_methods
+        ['list', 'get', 'create', 'update']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+
+    :argument uuid.UUID id:  ``read-only``  Unique Id provided by eAccounting.
+    :argument bool is_active: ``required`` Indicates if the article is active. ``default=True``
+    :argument str number: ``required`` Article number ``Max length: 40 characters``
+    :argument str name: ``required`` Article name ``Max length: 50 characters``
+    :argument str name_english: Article name in english ``Max length: 50 characters``
+    :argument number net_price: Net price of article ``Max Value: 10000000, Format: Max 2 decimals, default=0``
+    :argument number gross_price: Gross price of article ``Max Value: 10000000, Format: Max 2 decimals, default=0``
+    :argument uuid.UUID coding_id: ``required`` Reference to :class:`ArticleAccountCoding` used for the article.
+    :argument str coding_name: ``read-only`` Article account coding name.
+    :argument uuid.UUID unit_id: ``required`` Reference to :class:`Unit` used for the article.
+    :argument str unit_name: ``read-only`` Name of unit specified in unit_id.
+    :argument str unit_abbreviation: ``read-only`` Unit abbreviation of unit specified in unit_id.
+    :argument number stock_balance: Stock balance for the article. ``default=0``
+    :argument datetime.datetime stock_balance_manually_changed_utc: ``read-only`` Set when the stock balance is changed manually, for example after an inventory check.
+    :argument number stock_balance_reserved: ``read-only`` The reserved stock balance for the article.
+    :argument number stock_balance_available: ``read-only``  The available stock balance for the article.
+    :argument datetime.datetime changed_utc: Date and time from when the last changes was made on the article
+    :argument int house_work_type: House Work Type
+    :argument number purchase_price: Purchase price ``default=0``
+    :argument datetime.datetime purchase_price_manually_changed_utc: ``read-only`` Set when the purchase price is changed manually
+    :argument bool send_to_webshop: If True , will send article to VismaWebShop (If company has the integration). ``default=True``
+    :argument list(ArticleLabel) article_labels: A list of :class:`ArticleLabel`
+
+
+    .. todo::
+
+        work_house_type is not documented. Need to contact Visma API Team.
+
+    """
+
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      data_key='Id', load_only=True)
     is_active = fields.Boolean(required=True, data_key='IsActive', default=True)
@@ -889,7 +1232,7 @@ class Article(VismaModel):
     send_to_webshop = fields.Boolean(
         description=('Purpose: If true, will send article to VismaWebShop '
                      '(If company has the integration). Default: True'),
-        data_key='SendToWebshop', default=False)
+        data_key='SendToWebshop', default=True)
     article_labels = fields.List(fields.Nested('ArticleLabelSchema'),
                                  data_key='ArticleLabels', default=list())
 
@@ -908,6 +1251,40 @@ class Article(VismaModel):
 
 
 class BankAccount(VismaModel):
+    """
+    Represents a bank account in eAccounting.
+
+    endpoint
+        /bankaccounts
+    allowed_methods
+        ['list', 'create', 'get', 'update', 'delete']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    :argument uuid.UUID id: ``read-only`` Unique Id provided by eAccounting
+    :argument uuid.UUID bank: Reference to a :class:`Bank`. Not required for
+        bank accounts of cash or tax account type
+    :argument int bank_account_type: ``required`` 1 = ChequeAccount,
+        2 = CashAccount, 3 = SavingsAccount, 4 = CurrencyAccount,
+        5 = DigitalWalletAccount, 6 = CashCreditAccount, 7 = TaxAccount
+    :argument str bank_account_type_description: ``read-only`` Description of
+        the Bank Account type
+    :argument str bban: Bank Account number. Not required for bank accounts of
+        cash or tax account type
+    :argument str iban: IBAN number
+    :argument str name: Name of Bank account.
+    :argument bool is_active: Indicates if the account is active.
+        ``default=False``
+    :argument int ledger_account_number: ``required`` Account number to do
+        bookkeeping on for the bank account.
+    :argument bool has_active_bank_agreement: Indicates if the bank account has
+        an active bank agreement. ``default=False``
+    :argument bool is_default_cheque_account: Indicates if the account is the
+        default cheque account. Only used when having several cheque accounts.
+        ``default=False``
+
+    """
+
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      data_key='Id', load_only=True)
     bank = fields.UUID(description=('Not required for bank accounts of cash or '
@@ -962,6 +1339,22 @@ class BankAccount(VismaModel):
 
 
 class Bank(VismaModel):
+
+    """
+    Represents a bank in eAccounting
+
+    endpoint
+        /banks
+    allowed_methods
+        ['list']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    :argument uuid.UUID id: Unique Id provided by eAccounting
+    :argument str name: Bank name
+
+
+    """
     id = fields.UUID(data_key='Id')
     name = fields.String(data_key='Name')
 
@@ -974,6 +1367,75 @@ class Bank(VismaModel):
 
 
 class CompanySettings(VismaModel):
+    """
+    The company settings for current user
+
+    endpoint
+        /companysettings
+    allowed_methods
+        ['list', 'update']
+
+    .. note::
+
+        As of now there is no special way to handle an endpoint that only
+        contains a singel object accesses without an id. So even if it is a
+        single object you will need to use the following to get the data.
+
+        >>> company_settings = CompanySettings.objects.all().first()
+
+    :argument uuid.UUID id: Is set to empty string. This is to allow for updates
+        on the model.
+    :argument str name: ``required`` Company name.
+    :argument str email: Company email.
+    :argument str phone: Company phone.
+    :argument str mobile_phone: Company mobile phone.
+    :argument str address1: Company address, Row 1
+    :argument str address2: Company address, Row 2
+    :argument str country_code: Country code.
+    :argument str postal_code: Company postal code.
+    :argument str city: Company city.
+    :argument str website: Company website.
+    :argument str currency_code: Standard Currency code.
+    :argument uuid.UUID terms_of_payment_id: Reference to standard
+        :class:`TermsOfPayment` for company.
+    :argument str corporate_identity_number: ``read-only`` Corporate Identity
+        Number
+    :argument str vat_code:  VAT identification number
+    :argument str bank_giro: Bankgiro number. Only used in Sweden.
+    :argument str plus_giro: Plusgiro number. Only used in Sweden.
+    :argument str bank_account: Bank account number.
+    :argument str iban: IBAN number.
+    :argument datetime.datetime accounting_locked_to: Datetime where the
+        accounting is locked to.
+    :argument str gln:  Global Location Number.
+    :argument int product_variant: ``read-only`` Variant of eAccounting.
+        1 = Standard/Smart, 2 = Invoicing, 3 = Bookkeeping, 4 = Start/Solo,
+        5 = Pro, 6 = InvoicingCollaboration
+    :argument int type_of_business: ``read-only`` Indicates the companys
+        business type. 1 = Corporation, 2 = SoleProprietorship,
+        3 = EconomicAssociation, 4 = NonProfitOrganization,
+        5 = GeneralPartnership, 6 = LimitedPartnership,
+        7 = Cooperatives, 9 = PublicLimited
+    :argument int vat_period: ``read-only``  Period when VAT report should be
+        sent. 1 = OnceAMonth12th, 2 = OnceAMonth26th, 3 = OnceAQuarter,
+        4 = OnceAYear, 5 = Never, 6 = Bimonthly, 7 = OnceAMonth, 8 = TwiceAYear,
+        9 = OnceAQuarterFloating
+    :argument list(str) activated_modules: List of activated modules.
+    :argument CompanyText company_text: A :class:`CompanyText`: object.
+    :argument int next_customer_number: ``read-only`` Next customer number in
+        sequence.
+    :argument int next_supplier_number: ``read-only`` Next supplier number in
+        sequence.
+    :argument int next_customer_invoice_number: ``read-only`` Next customer
+        invoice number in sequence.
+    :argument int next_quote_number: ``read-only`` Next quote number in sequence.
+    :argument bool show_prices_excl_vat_pc: Indicates if prices should be shown
+        excluding VAT for private individuals/customers.
+
+
+
+    """
+
     # TODO: How to handle a single entity endpoint?
 
     id = ''  # needs to be empty string to allow for update on a non id model.
@@ -1092,6 +1554,23 @@ class CompanySettings(VismaModel):
 
 
 class CompanyTexts(VismaModel):
+    """
+    Collects company wide texts.
+
+    :argument str customer_invoice_text_domestic: Text used for domestic
+        invoices. ``Max length: 180 characters``
+    :argument str customer_invoice_text_foreign: Text used for foreign
+        invoices. ``Max length: 180 characters``
+    :argument str order_text_domestic: Text used for domestic orders.
+        ``Max length: 180 characters``
+    :argument str order_text_foreign: Text used for foreign orders.
+        ``Max length: 180 characters``
+    :argument str over_due_text_domestic: Text used for domestic over due
+        invoices. ``Max length: 180 characters``
+    :argument str over_due_text_foreign: Text used for foreign over due
+        invoices. ``Max length: 180 characters``
+
+    """
     customer_invoice_text_domestic = fields.String(
         description='Max length: 180 characters',
         validate=[Length(min=0, max=180)],
@@ -1119,6 +1598,24 @@ class CompanyTexts(VismaModel):
 
 
 class CostCenterItem(VismaModel):
+    """
+    The actual cost center item in a cost center where the expence gets booked.
+
+    endpoint
+        /costcenteritems
+    allowed_methods
+        'create', 'get', 'update']
+
+    :argument uuid.UUID id = ``read-only`` Unique Id provided by eAccounting.
+    :argument uuid.UUID cost_center_id: ``required`` Reference to
+    :class:`CostCenter` holding the cost center item.
+    :argument str name: Name of cost center item. ``Max length: 50 characters``
+    :argument str short_name: Short name of cost center item.
+    ``Max length: 9 characters``
+    :argument bool is_active: Indicates if the cost center item is active.
+
+    """
+
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      data_key='Id', load_only=True)
     cost_center_id = fields.UUID(required=True,
@@ -1145,6 +1642,27 @@ class CostCenterItem(VismaModel):
 
 
 class CostCenter(VismaModel):
+    """
+    Represents a cost center. A cost center is a way of splitting up costs and
+    earnings between different parts of the company so it is possible to follow
+    up better.
+
+    endpoint
+        /costcenters
+    allowed_methods
+        ['list', 'update']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    :argument uuid.UUID id: ``read-only`` Unique Id provided by eAccounting.
+    :argument str name: Cost center name.
+    :argument int number: Cost center number.
+    :argument bool is_active: Indicates if the cost center is active.
+        ``default=False``
+    :argument list(CostCenterItem) items: List of :class:`CostCenterItem`
+        belonging to the cost center.
+
+    """
     id = fields.UUID(data_key='Id', load_only=True)
     name = fields.String(validate=[Length(min=0, max=20)], data_key='Name')
     number = fields.Integer(data_key='Number')
@@ -1160,6 +1678,21 @@ class CostCenter(VismaModel):
 
 
 class Country(VismaModel):
+    """
+    Countries available in eAccounting.
+
+    endpoint
+        /countries
+    allowed_methods
+        ['list']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    :argument str name: Country Name.
+    :argument str code: Country Code.
+    :argument bool is_eu_member: Indicates if the country is a member of the EU.
+
+    """
     name = fields.String(data_key='Name')
     code = fields.String(data_key='Code')
     is_eu_member = fields.Boolean(data_key='IsEuMember')
@@ -1175,6 +1708,19 @@ class Country(VismaModel):
 
 
 class Currency(VismaModel):
+    """
+    Currency available in eAccounting
+
+    endpoint
+        /currencies
+    allowed_methods
+        ['list']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    :argument str code: Currency code.
+
+    """
     code = fields.String(data_key='Code')
 
     class Meta:
@@ -1185,6 +1731,22 @@ class Currency(VismaModel):
 
 
 class CustomerLabel(VismaModel):
+
+    """
+    Customer labels. Labels to attach to a customer.
+
+    endpoint
+        /customerlabels
+    allowed_methods
+        ['list', 'create', 'get', 'update', 'delete']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    :argument uuid.UUID id: ``read-only`` Unique Id provided by eAccounting
+    :argument str name: Label name.
+    :argument str description: Label description.
+
+    """
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      data_key='Id', load_only=True)
     name = fields.String(required=True, description='Max length: 50 characters',
@@ -1210,6 +1772,22 @@ class CustomerLabel(VismaModel):
 
 
 class DeliveryMethod(VismaModel):
+    """
+    Represents a delivery method in eAccounting.
+
+    endpoint
+        /deliverymethods
+    allowed_methods
+        ['list', 'get']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+    :argument uuid.UUID id: Unique Id provided by eAccounting.
+    :argument str name: Name of delivery method.
+    :argument str code: Delivery method code.
+
+    """
+
     id = fields.UUID(data_key='Id', load_only=True)
     name = fields.String(data_key='Name')
     code = fields.String(data_key='Code')
@@ -1225,6 +1803,21 @@ class DeliveryMethod(VismaModel):
 
 
 class DeliveryTerm(VismaModel):
+    """
+        Represents a delivery term in eAccounting.
+
+        endpoint
+            /deliveryterms
+        allowed_methods
+            ['list', 'get']
+        envelopes
+            {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+        :argument uuid.UUID id: Unique Id provided by eAccounting.
+        :argument str name: Name of delivery term.
+        :argument str code: Delivery term code.
+
+        """
     id = fields.UUID(data_key='Id')
     name = fields.String(data_key='Name')
     code = fields.String(data_key='Code')
@@ -1240,6 +1833,87 @@ class DeliveryTerm(VismaModel):
 
 
 class Supplier(VismaModel):
+    """
+    Represents a Supplier in eAccounting.
+
+    endpoint
+        /suppliers
+    allowed_methods
+        ['list', 'create', 'get', 'update', 'delete']
+    envelopes
+        {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
+
+
+    :argument uuid.UUID id: ``read-only``  Unique Id provided by eAccounting
+    :argument str supplier_number: Unique identifier. If not provided,
+        eAccounting will provide one. ``Max length: 16 characters``
+    :argument str address1: Supplier address row 1.
+        ``Max length: 50 characters``
+    :argument str address2: Supplier address row 1.
+        ``Max length: 50 characters``
+    :argument bool automatic_payment_service: Sweden only. Indicates if the
+        supplier is paid by an automatic payment service. Supplier invoices to
+        such suppliers will not be sent to the bank via the bank integration.
+        ``default=False``
+    :argument str bank_account_number:  Only used in norwegian and danish
+        eAccounting for domestic payments.``Max length: 50 characters``
+    :argument str  bank_bban: Used on foreign payments to identify a bankaccount
+        together with Bank Code (SupplierBankCode)'
+        ``Format NO: 11 characters, Format DK: 11-14 characters``
+    :argument str bank_bic: Used on foreign payments to identify a bankaccount
+        together with IBAN (SupplierBankIban) Format: 6 letters followed by 2
+        or 5 characters (total length 8 or 11)
+    :argument str bank_code: Used on foreign payments to identify a bankaccount
+        together with BBAN (SupplierBankBban)
+        ``Format: 2 letters followed by at least 3 characters``
+    :argument str bank_country_code: Bank country code.
+        ``default=Country of the supplier``
+    :argument str bankgiro_number: Only used in swedish eAccounting, for
+        swedish suppliers. ``Max length: 10 characters``
+    :argument str bank_iban:  Used on foreign payments to identify a bankaccount
+        together with BIC (SupplierBankBic). Format: 2 letters for country code,
+        2 control digits, 3 characters for bank identification
+    :argument str bank_name: Bank name. ``Max length: 50 characters``
+    :argument str city: Supplier city. ``Max length: 50 characters``
+    :argument str contact_person_email: ``Max length: 255 characters``
+    :argument str contact_person_mobile: ``Max length: 50 characters``
+    :argument str contact_person_name: ``Max length: 50 characters``
+    :argument str contact_person_phone: ``Max length: 50 characters``
+    :argument str corporate_identity_number: ``Max length: 20 characters``
+    :argument str country_code: Country code: ``Max length: 2 characters``
+    :argument datetime.datetime created_utc: ``read-only`` Supplier creation
+        time.
+    :argument str currency_code: Currency of the supplier.
+        ``default=Currency of the user company``
+    :argument str email_address: ``Max length: 255 characters``
+    :argument str mobile_phone: ``Max length: 255 characters``
+    :argument datetime.datetime modified_utc: ``read-only`` Last modified time.
+    :argument str name: Supplier name ``Max length: 50 characters``
+    :argument str note: Supplier notes. ``Max length: 4000 characters``
+    :argument str plusgiro_number: Only used in swedish eAccounting, for
+        swedish suppliers.
+    :argument str postal_code: ``Max length: 10 characters``
+    :argument str telephone: ``Max length: 50 characters``
+    :argument uuid.UUID terms_of_payment_id: ``required`` Reference to
+        :class:`TermsOfPayment` used for supplier.
+    :argument str www_address: Supplier website. ``Max length: 255 characters``
+    :argument int bank_fee_code: Used for foreign payments to determine which
+        party that pays for aditional bank fees. 0 = Not set,
+        1 = SenderPaysAllBankCharges, 2 = RecieverPaysAllBankCharges,
+        3 = RecieverPaysForeignCosts (Choices taken from app js sourcecode)
+        ``default=0``
+    :argument uuid.UUID pay_from_bank_account_id: Reference to the
+        :class:`BankAccount` is used for foreign payments.
+    :argument uuid.UUID foreign_payment_code_id: Reference to
+        :class:`ForeignPaymentCode`. Used for categorization of foreign
+        purchases (NO and SE only)
+    :argument bool uses_payment_reference_numbers: ``required`` True if the
+        supplier uses payment reference numbers. (OCR, KID etc.)
+        ``default=True``
+    :argument bool is_active: ``default=True``
+    :argument bool self_employed_without_fixed_address: ``default=False``
+
+    """
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      data_key='Id', load_only=True)
     supplier_number = fields.String(description=('Max length: 16 characters. '
@@ -1409,6 +2083,17 @@ class Supplier(VismaModel):
 
 
 class ForeignPaymentCodes(VismaModel):
+
+    """
+    Holds available Foreign Payment Codes.
+
+    :argument uuid.UUID id: Unique identifier provided by eAccounting.
+    :argument int code: Enum for the payment code.
+    :argument str description: Description of the payment code.
+    :argument str country_code: Country code.
+
+    """
+
     id = fields.UUID(data_key='Id')
     code = fields.Integer(data_key='Code')
     description = fields.String(data_key='Description')
@@ -1422,6 +2107,16 @@ class ForeignPaymentCodes(VismaModel):
 
 
 class Unit(VismaModel):
+
+    """
+    Hold available units. Mostly used for articles.
+
+    :argument uuid.UUID id: Unique identifier provided by eAccounting.
+    :argument str name: Name
+    :argument str code: Code
+    :argument str abbreviation: Abbreviation.
+
+    """
     id = fields.UUID(data_key='Id')
     name = fields.String(data_key='Name')
     code = fields.String(data_key='Code')
@@ -1566,6 +2261,27 @@ class OpeningBalances(VismaModel):
 # ########################################################################
 # Models below need moderating, generated from swagger-marshmallow-codegen
 # ########################################################################
+
+class AccountBalance(VismaModel):
+    account_number = fields.Integer(description='Read-only. The account number',
+                                    data_key='AccountNumber', load_only=True)
+    account_name = fields.String(
+        description='Read-only. The name of the account',
+        data_key='AccountName', load_only=True)
+    balance = fields.Number(description='Read-only. The account balance',
+                            data_key='Balance', load_only=True)
+
+    class Meta:
+        # GET /v2/accountbalances/{date}
+        # GET /v2/accountbalances/{accountNumber}/{date}
+
+        # TODO: how to handle endpoints that doesn't use a pk?
+        pass
+
+
+# TODO: make it possible to have another field as primary key.
+# TODO: in accpunt the number is the primary key.
+# TODO: add a function to Account that is balance that will get the balance of the accoount on certain date.
 
 
 class PartnerResourceLink(VismaModel):
