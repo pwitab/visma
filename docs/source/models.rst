@@ -91,6 +91,13 @@ Customer
 .. autoclass:: Customer
    :members:
 
+CustomerInvoiceDraft
+^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: CustomerInvoiceDraft
+   :members:
+
+
 CustomerLabel
 ^^^^^^^^^^^^^
 
@@ -109,17 +116,39 @@ DeliveryTerm
 .. autoclass:: DeliveryTerm
    :members:
 
-Supplier
-^^^^^^^^
 
-.. autoclass:: Supplier
+FiscalYear
+^^^^^^^^^^
+
+.. autoclass:: FiscalYear
    :members:
+
 
 ForeignPaymentCodes
 ^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: ForeignPaymentCodes
    :members:
+
+
+Project
+^^^^^^^
+
+.. autoclass:: Project
+   :members:
+
+OpeningBalances
+^^^^^^^^^^^^^^^
+
+.. autoclass:: OpeningBalances
+   :members:
+
+Supplier
+^^^^^^^^
+
+.. autoclass:: Supplier
+   :members:
+
 
 Unit
 ^^^^
@@ -128,18 +157,10 @@ Unit
    :members:
 
 
+User
+^^^^
 
-CustomerInvoiceDraft
-^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: CustomerInvoiceDraft
-   :members:
-
-
-FiscalYear
-^^^^^^^^^^
-
-.. autoclass:: FiscalYear
+.. autoclass:: User
    :members:
 
 
@@ -149,6 +170,12 @@ VatCode
 .. autoclass:: VatCode
    :members:
 
+
+VatReport
+^^^^^^^^^
+
+.. autoclass:: VatReport
+   :members:
 
 TermsOfPayment
 ^^^^^^^^^^^^^^
@@ -174,6 +201,12 @@ CustomerInvoiceDraftRow
 .. autoclass:: CustomerInvoiceDraftRow
    :members:
 
+DocumentApprovalEvent
+^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: DocumentApprovalEvent
+   :members:
+
 
 PaginatedResponse
 ^^^^^^^^^^^^^^^^^
@@ -195,3 +228,5 @@ RelatedAccounts
 
 .. autoclass:: RelatedAccounts
    :members:
+
+

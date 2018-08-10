@@ -1,4 +1,5 @@
 import datetime
+import iso8601
 
 import pytest
 
@@ -21,9 +22,9 @@ class TestProject:
 
     @pytest.fixture()
     def project(self, last_project):
-        new_number = int(last_project.number) + 1
-        project = Project(name='TestProject', number=str(new_number),
-                          start_date='2018-02-02')
+        new_number = int(last_project.number) + 2
+        project = Project(name='TestProjec', number=str(new_number),
+                          start_date=iso8601.parse_date('2018-02-03'))
         project.save()
 
         yield project
