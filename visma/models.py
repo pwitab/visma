@@ -419,8 +419,8 @@ class CustomerInvoiceDraft(VismaModel):
         ``Max length: 100 characters``
     :argument str our_reference: Companys reference.
         ``Max length: 100 characters``
-    :argument str invoice_customer_name: Customer name on invoice.
-        ``default=''`` ``Max length: 50 characters``
+    :argument str invoice_customer_name: ``Read-only`` Customer name on invoice.
+         ``Max length: 50 characters``
     :argument  str invoice_address1: Invoice address row 1
         ``Max length: 50 characters``
     :argument str invoice_address2: Invoice address row 2
@@ -519,11 +519,10 @@ class CustomerInvoiceDraft(VismaModel):
     our_reference = fields.String(description='Max length: 100 characters',
                                   validate=[Length(min=0, max=100)],
                                   data_key='OurReference', allow_none=True)
-    invoice_customer_name = fields.String(required=True,
+    invoice_customer_name = fields.String(load_only=True,
                                           description='Max length: 50 characters',
                                           validate=[Length(min=0, max=50)],
-                                          data_key='InvoiceCustomerName',
-                                          default='')
+                                          data_key='InvoiceCustomerName')
     invoice_address1 = fields.String(description='Max length: 50 characters',
                                      validate=[Length(min=0, max=50)],
                                      data_key='InvoiceAddress1',
@@ -814,7 +813,8 @@ class VatCode(VismaModel):
     :argument str code: VAT code
     :argument str description: Description
     :argument number vat_rate: VAT Rate (in percentage??)
-    :argument RelatedAccounts related_accounts: A :class:`RelatedAccounts` object that holds the accounts related to this VAT code.
+    :argument RelatedAccounts related_accounts: A :class:`RelatedAccounts`
+        object that holds the accounts related to this VAT code.
 
 
     .. todo::
@@ -904,7 +904,8 @@ class Account(VismaModel):
     """
 
     name = fields.String(required=True,
-                         description='Max length: 100 characters. The name of the account',
+                         description='Max length: 100 characters. '
+                                     'The name of the account',
                          validate=[Length(min=0, max=100)], data_key='Name')
     number = fields.String(required=True, description='The account number',
                            data_key='Number')
@@ -916,7 +917,8 @@ class Account(VismaModel):
                      'with the account'), load_only=True,
         data_key='VatCodeDescription')
     fiscal_year_id = fields.UUID(required=True,
-                                 description='The Id of the Fiscal year that the account belongs to',
+                                 description='The Id of the Fiscal year that '
+                                             'the account belongs to',
                                  data_key='FiscalYearId')
     reference_code = fields.String(
         description=('Read-only. Returns the reference code on the account. '
@@ -1930,7 +1932,8 @@ class Supplier(VismaModel):
     id = fields.UUID(description='Read-only: Unique Id provided by eAccounting',
                      data_key='Id', load_only=True)
     supplier_number = fields.String(description=('Max length: 16 characters. '
-                                                 'Purpose: Unique identifier. If not provided, '
+                                                 'Purpose: Unique identifier. '
+                                                 'If not provided, '
                                                  'eAccounting will provide one'),
                                     validate=[Length(min=0, max=16)],
                                     data_key='SupplierNumber', allow_none=True)
@@ -1961,9 +1964,10 @@ class Supplier(VismaModel):
                   ], data_key='BankBban', allow_none=True)
     bank_bic = fields.String(
         description=('Purpose: Used on foreign payments to identify a '
-                     'bankaccount together with IBAN (SupplierBankIban)\r\n'
+                     'bankaccount together with IBAN (SupplierBankIban)'
                      'Format: 6 letters followed by 2 or 5 characters '
-                     '(total length 8 or 11)'), validate=[Length(min=0, max=50),
+                     '(total length 8 or 11)'),
+        validate=[Length(min=0, max=50),
                                                           # Regexp(regex=re.compile('^[a-zA-Z]{6}([a-zA-z0-9]{2}|[a-zA-z0-9]{5})$'))
                                                           ], data_key='BankBic',
         allow_none=True)
@@ -2242,7 +2246,6 @@ class VatReport(VismaModel):
 
 
 class DocumentApprovalEvent(VismaModel):
-
     """
     Represents a Document Approval Event
 
@@ -2253,11 +2256,10 @@ class DocumentApprovalEvent(VismaModel):
         created the event.
 
     """
-    document_approval_status = fields.Integer(
-        description=('0 = None, '
-                     '1 = Approved, '
-                     '2 = Rejected, '
-                     '3 = ReadyForApproval'),
+    document_approval_status = fields.Integer(description=('0 = None, '
+                                                           '1 = Approved, '
+                                                           '2 = Rejected, '
+                                                           '3 = ReadyForApproval'),
         validate=[OneOf(choices=[0, 1, 2, 3], labels=[])],
         data_key='DocumentApprovalStatus')
     created_utc = fields.DateTime(data_key='CreatedUtc')
@@ -2269,7 +2271,6 @@ class DocumentApprovalEvent(VismaModel):
 
 
 class Project(VismaModel):
-
     """
     Represents a Project in eAccounting
 
@@ -2299,7 +2300,8 @@ class Project(VismaModel):
     name = fields.String(required=True, description='Max length: 50 characters',
                          validate=[Length(min=0, max=50)], data_key='Name')
     # TODO: make custom field to handle the parsing and printing of dates.
-    start_date = fields.DateTime(required=True, format='%Y-%m-%d', data_key='StartDate')
+    start_date = fields.DateTime(required=True, format='%Y-%m-%d',
+                                 data_key='StartDate')
     end_date = fields.DateTime(data_key='EndDate', allow_none=True)
     customer_id = fields.UUID(data_key='CustomerId', allow_none=True)
     customer_name = fields.String(
@@ -2326,7 +2328,6 @@ class Project(VismaModel):
 
 
 class OpeningBalances(VismaModel):
-
     """
     Represents opening balances
 
@@ -2348,7 +2349,6 @@ class OpeningBalances(VismaModel):
         endpoint = '/fiscalyears/openingbalances'
         allowed_methods = ['list']
         envelopes = {'list': {'class': PaginatedResponse, 'data_attr': 'Data'}}
-
 
 # ########################################################################
 # Models below need moderating, generated from swagger-marshmallow-codegen

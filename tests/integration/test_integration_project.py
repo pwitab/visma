@@ -29,7 +29,7 @@ class TestProject:
 
         yield project
 
-    def test_list_projects(self, project):
+    def test_list_projects(self):
         projects = Project.objects.all()
 
         assert len(projects) is not 0
@@ -39,9 +39,13 @@ class TestProject:
 
         assert project.id == last_project.id
 
-    def test_create_project(self):
-        # Done in fixture. Can't delete so no need to create alot if extras.
-        pass
+    #def test_create_project(self, last_project):
+    #    new_number = int(last_project.number) + 2
+    #    project = Project(name='TestProjec', number=str(new_number),
+    #                      start_date=iso8601.parse_date('2018-02-03'))
+    #    project.save()
+
+    #    assert project.number == new_number
 
     def test_update_project(self, last_project):
         new_desc = datetime.datetime.now().isoformat()[-10:-1]

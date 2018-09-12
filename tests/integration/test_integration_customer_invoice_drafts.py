@@ -36,7 +36,8 @@ class TestCRUDCustomerInvoiceDraft:
                                            invoice_customer_name='test_name',
                                            invoice_postal_code='25269',
                                            invoice_city='Helsingborg',
-                                           customer_is_private_person=False)
+                                           customer_is_private_person=False,
+                                           your_reference='Reference')
             invoice.save()
 
             yield invoice.id
@@ -66,12 +67,12 @@ class TestCRUDCustomerInvoiceDraft:
         invoice = CustomerInvoiceDraft.objects.get(customer_invoice_draft_id)
 
         new_name = 'Updated Name'
-        invoice.invoice_customer_name = new_name
+        invoice.your_reference = new_name
         invoice.save()
 
         updated_invoice = CustomerInvoiceDraft.objects.get(customer_invoice_draft_id)
 
-        assert updated_invoice.invoice_customer_name == new_name
+        assert updated_invoice.your_reference == new_name
 
     def test_delete_customer_invoice_draft(self, customer):
         # dont use the fixture since that deletes automatically.
