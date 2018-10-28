@@ -73,7 +73,7 @@ class VismaModelMeta(type):
                                        allowed_methods]
 
             api_klass_path = os.environ.get('VISMA_API_CLASS',
-                                            default='visma.api.VismaAPI')
+                                            default='visma.api.NoAPI')
             api_klass = import_string(api_klass_path)
             manager.api = api_klass.load()
 
@@ -81,16 +81,23 @@ class VismaModelMeta(type):
 
             envelopes = getattr(meta, 'envelopes', dict())
             for envelope_method, envelope_settings in envelopes.items():
-
                 envelope_klass = envelope_settings.get('class')
                 data_attr = envelope_settings.get('data_attr')
                 sub_envelop_klass_name = envelope_klass.__name__ + name
+
+                # TODO: the meta should be gotten from the main class. But seems to be a bit complicated with nesting meta classes.
+
                 sub_envelop_klass = type(sub_envelop_klass_name,
                                          (envelope_klass,),
-                                         {'data': fields.List(
-                                             fields.Nested(schema_name),
-                                             required=True,
-                                             data_key=data_attr)})
+                                         {
+                                             'data': fields.List(
+                                                 fields.Nested(schema_name),
+                                                 required=True,
+                                                 data_key=data_attr),
+                                             'meta': fields.Nested(
+                                                 'PaginationMetadataSchema',
+                                                 data_key='Meta'),
+                                         })
                 manager.register_envelope(envelope_method, sub_envelop_klass)
 
         return new_class

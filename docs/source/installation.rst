@@ -1,4 +1,4 @@
-.. _installation
+.. _installation:
 
 Installation
 ============
@@ -61,6 +61,7 @@ These settings are now supplied via the environment variables:
 * VISMA_API_CLIENT_ID
 * VISMA_API_CLIENT_SECRET
 * VISMA_API_TOKEN_PATH
+* VISMA_API_CLASS
 
 If you are using the test environment supplied from Visma API Team you need to
 add the environment variable VISMA_API_ENV=test so that the paths are set up properly.

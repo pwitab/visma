@@ -4,10 +4,11 @@ Welcome to Visma's documentation!
 Visma is a python client/ORM for the Visma eAccounting API
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
    installation
+   models
    framework
 
 

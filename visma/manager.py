@@ -2,9 +2,13 @@ import json
 import logging
 
 from visma.api import VismaClientException
+from visma.query import APIQuerySet
+
 logger = logging.getLogger(__name__)
 
+
 class Manager:
+
     def __init__(self):
         self.model = None
         self.name = None
@@ -35,15 +39,28 @@ class Manager:
     def use_envelope(self, method):
         return method in self.envelopes.keys()
 
-    def all(self, method='LIST'):
-        self.verify_method(method)
-        in_data = self.api.get(self.endpoint).json()
-        logger.debug(f'Received: {in_data}')
-        if self.use_envelope(method):
-            objs = self.envelopes[method].load(in_data).data
+    def _get_query_set(self, *args, **kwargs):
+        return APIQuerySet(model=self.model, api=self.api, schema=self.schema,
+                           *args, **kwargs)
+
+    def all(self):
+        envelopes = self.envelopes.get('LIST', None)
+
+        if envelopes:
+            return self._get_query_set(envelope=envelopes)
         else:
-            objs = self.schema.load(data=in_data, many=True)
-        return objs
+            return self._get_query_set()
+
+    def filter(self, **kwargs):
+        return self._get_query_set(envelope=self.envelopes['LIST']).filter(
+            **kwargs)
+
+    def exclude(self, **kwargs):
+        return self._get_query_set(envelope=self.envelopes['LIST']).exclude(
+            **kwargs)
+
+    # TODO: Should get, create update and delete also return querysets?
+    # Then need to implement the handling of them
 
     def get(self, pk, method='GET'):
         self.verify_method(method)
@@ -81,5 +98,3 @@ class Manager:
         logger.debug(f'Deleting object at: {_endpoint}')
         result = self.api.delete(_endpoint)
         return result
-
-
